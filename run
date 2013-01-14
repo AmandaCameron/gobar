@@ -1,0 +1,3 @@
+#!/bin/bash
+
+go run gobar.go commandtray.go statbar.go images.go util.go ct_*.go
