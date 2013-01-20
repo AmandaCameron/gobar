@@ -19,7 +19,7 @@ import (
 	"launchpad.net/~jamesh/go-dbus/trunk"
 
 	"dbus/upower"
-	"dbus/wicd"
+	//"dbus/wicd"
 )
 
 var (
@@ -121,8 +121,9 @@ func main() {
 	up, err := upower.New(conn)
 	failMeMaybe(err)
 
-	w, err := wicd.New(conn)
-	failMeMaybe(err)
+	//w, err := wicd.New(conn)
+	//failMeMaybe(err)
+	//var w *wicd.Wicd
 
 	// Command Tray
 
@@ -131,11 +132,14 @@ func main() {
 	ct.Bind("Mod4-n")
 	ct.Connect(win, img)
 
-	Register(NetSource{w: w})
+	// Register(NetSource{w: w})
 
 	// Status Bar
 
-	sb := NewStatusBar(X, up, w)
+	sb := NewStatusBar(X)
+
+	sb.Add(&SbPower{up})
+	sb.Add(&SbWifi{})
 
 	sb.Connect(img)
 	sb.Draw()
