@@ -18,6 +18,7 @@ import (
 	// "github.com/norisatir/go-dbus"
 	"launchpad.net/~jamesh/go-dbus/trunk"
 
+	"dbus/nm"
 	"dbus/upower"
 	//"dbus/wicd"
 )
@@ -113,17 +114,44 @@ func main() {
 
 	// Connect to DBus
 
-	conn, err := dbus.Connect(dbus.SystemBus)
+	sys, err := dbus.Connect(dbus.SystemBus)
 	failMeMaybe(err)
 
-	failMeMaybe(conn.Authenticate())
+	failMeMaybe(sys.Authenticate())
 
-	up, err := upower.New(conn)
+	// TODO: This will come in handy sometime.
+
+	sess, err := dbus.Connect(dbus.SessionBus)
 	failMeMaybe(err)
 
-	//w, err := wicd.New(conn)
-	//failMeMaybe(err)
-	//var w *wicd.Wicd
+	failMeMaybe(sess.Authenticate())
+
+	up := upower.New(sys)
+	cli := nm.New(sys)
+
+	devs, err := cli.GetDevices()
+	failMeMaybe(err)
+
+	var dev *nm.Device
+	var batt *upower.Device
+
+	for _, d := range devs {
+		if d.Type() == nm.Wireless {
+			dev = d
+
+			break
+		}
+	}
+
+	pdevs, err := up.GetDevices()
+	failMeMaybe(err)
+
+	for _, d := range pdevs {
+		if d.Type() == upower.Battery {
+			batt = d
+			break
+		}
+	}
 
 	// Command Tray
 
@@ -134,12 +162,20 @@ func main() {
 
 	// Register(NetSource{w: w})
 
+	Register(NewShellSource(sess))
+
 	// Status Bar
 
 	sb := NewStatusBar(X)
 
-	sb.Add(&SbPower{up})
-	sb.Add(&SbWifi{})
+	if batt != nil {
+		sb.Add(&SbPower{batt})
+	}
+
+	if dev != nil {
+		sb.Add(&SbNmWifi{dev})
+		Register(NmSource{dev})
+	}
 
 	sb.Connect(img)
 	sb.Draw()
@@ -148,10 +184,6 @@ func main() {
 
 	go drawClock(X, img, win)
 	go drawWorkspace(X, img, win)
-	//	go drawStatus(X, img, up, w)
-	//	go ct.Draw()
-
-	// print("Oh myyyy.\n")
 
 	xevent.Main(X)
 }
@@ -204,6 +236,8 @@ func drawWorkspace(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Wind
 	}
 
 	for {
+		time.Sleep(500 * time.Millisecond)
+
 		img.For(func(x, y int) xgraphics.BGRA {
 			return workspace_bg
 		})
@@ -215,8 +249,11 @@ func drawWorkspace(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Wind
 		}
 
 		desks, err := ewmh.DesktopNamesGet(X)
-
 		if err != nil {
+			continue
+		}
+
+		if int(dsk) >= len(desks) {
 			continue
 		}
 
@@ -230,7 +267,5 @@ func drawWorkspace(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Wind
 
 		bar_img.XDraw()
 		bar_img.XPaint(win.Id)
-
-		time.Sleep(500 * time.Millisecond)
 	}
 }

@@ -9,11 +9,12 @@ import (
 
 var (
 	// WiFi
-	wifi_1_img  image.Image
-	wifi_2_img  image.Image
-	wifi_3_img  image.Image
-	wifi_4_img  image.Image
-	wifi_dc_img image.Image
+	wifi_1_img     image.Image
+	wifi_2_img     image.Image
+	wifi_3_img     image.Image
+	wifi_4_img     image.Image
+	wifi_dc_img    image.Image
+	wifi_enc_image image.Image
 
 	// Status Bar
 	charging_img  image.Image
@@ -43,6 +44,7 @@ func openImage(fileName string) image.Image {
 
 func initImages() {
 	// WiFi
+	wifi_enc_image = openImage("wifi-enc.png")
 	wifi_dc_img = openImage("wifi-dc.png")
 	wifi_1_img = openImage("wifi-1.png")
 	wifi_2_img = openImage("wifi-2.png")

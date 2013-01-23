@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "fmt"
 	"image"
 	"image/draw"
 
@@ -8,11 +9,12 @@ import (
 )
 
 type SbPower struct {
-	up *upower.UPower
+	dev *upower.Device
 }
 
 func (icon *SbPower) Attach(sb *StatusBar) {
-	icon.up.Connect(func(_ *upower.UPower) {
+	icon.dev.Connect(func(_ *upower.Device) {
+		// fmt.Printf("[SB] (Power) State Changed.\n")
 		sb.Draw()
 	})
 }
@@ -20,27 +22,32 @@ func (icon *SbPower) Attach(sb *StatusBar) {
 func (icon *SbPower) Icon() image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, 34, 16))
 
-	batt, err := icon.up.GetBattery()
+	state, err := icon.dev.State()
 	if err != nil {
-		return nil
+		return img
 	}
 
-	if batt.State == upower.Charging || batt.State == upower.Full {
+	charge, err := icon.dev.Charge()
+	if err != nil {
+		return img
+	}
+
+	if state == upower.Charging || state == upower.Full {
 		draw.Draw(img, image.Rect(0, 0, 16, 16), charging_img, image.Point{0, 0}, draw.Over)
 	}
 
 	var bimg image.Image
 
 	switch {
-	case batt.Charge > 90:
+	case charge > 90:
 		bimg = battery_5_img
-	case batt.Charge > 50:
+	case charge > 50:
 		bimg = battery_4_img
-	case batt.Charge > 25:
+	case charge > 25:
 		bimg = battery_3_img
-	case batt.Charge > 10:
+	case charge > 10:
 		bimg = battery_2_img
-	case batt.Charge <= 10:
+	case charge <= 10:
 		bimg = battery_1_img
 	}
 

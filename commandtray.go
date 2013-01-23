@@ -76,7 +76,7 @@ func (ct *CommandTray) initPopup() {
 	failMeMaybe(err)
 
 	ct.pu_img.For(func(x, y int) xgraphics.BGRA {
-		if y%bar_size == bar_size-1 {
+		if y%bar_size == bar_size-1 || x == 0 || x == 412-1 {
 			return xgraphics.BGRA{128, 128, 128, 255}
 		}
 		return xgraphics.BGRA{64, 64, 64, 255}
@@ -84,13 +84,13 @@ func (ct *CommandTray) initPopup() {
 
 	failMeMaybe(ewmh.WmDesktopSet(ct.X, ct.popup.Id, 0xffffffff))
 
-	// failMeMaybe(ewmh.WmWindowTypeSet(ct.X, ct.popup.Id, []string{
-	// 	"_NET_WM_WINDOW_TYPE_DOCK",
-	// }))
+	failMeMaybe(ewmh.WmWindowTypeSet(ct.X, ct.popup.Id, []string{
+		"_NET_WM_WINDOW_TYPE_DOCK",
+	}))
 
-	failMeMaybe(ct.popup.Listen(xproto.EventMaskKeyPress))
+	failMeMaybe(ct.popup.Listen(xproto.EventMaskKeyPress | xproto.EventMaskStructureNotify))
 
-	ct.popup.Resize(400, bar_size*10)
+	ct.popup.Resize(412, bar_size*10)
 	ct.popup.Move(0, bar_size)
 
 	ct.pu_img.XSurfaceSet(ct.popup.Id)
@@ -124,13 +124,16 @@ func (ct *CommandTray) Focus() {
 
 	ct.initPopup()
 
+	xevent.MapNotifyFun(func(X *xgbutil.XUtil, e xevent.MapNotifyEvent) {
+		ct.popup.Focus()
+	}).Connect(ct.X, ct.popup.Id)
+
+	ct.popup.Stack(xproto.StackModeAbove)
 	ct.popup.Map()
 
 	ct.keyPress().Connect(ct.X, ct.popup.Id)
 
 	ct.Draw()
-	//ct.popup.Focus()
-	ewmh.ActiveWindowReq(ct.X, ct.popup.Id)
 }
 
 func (ct *CommandTray) Blur() {
@@ -160,7 +163,7 @@ func (ct *CommandTray) Draw() {
 		ct.bar_img.XPaint(ct.bar_win.Id)
 
 		ct.pu_img.For(func(x, y int) xgraphics.BGRA {
-			if y%bar_size == bar_size-1 || y == 0 || x == 0 || x == 412 {
+			if y%bar_size == bar_size-1 || y == 0 || x == 0 || x == 412-1 {
 				return xgraphics.BGRA{128, 128, 128, 255}
 			} else if y/bar_size == ct.selected {
 				return xgraphics.BGRA{96, 96, 96, 255}
@@ -191,12 +194,12 @@ func (ct *CommandTray) Draw() {
 				ncmds = 10
 			}
 
-			ct.popup.Resize(410, bar_size*ncmds)
+			ct.popup.Resize(412, bar_size*ncmds)
 
 		} else {
 			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, font_size, font, "No Matches")
 
-			ct.popup.Resize(410, bar_size)
+			ct.popup.Resize(412, bar_size)
 		}
 
 		ct.pu_img.XDraw()
@@ -288,8 +291,8 @@ func (ct *CommandTray) keyPress() xevent.KeyPressFun {
 }
 
 func (ct *CommandTray) activate() {
-	cmds := ct.cmds //getCommands()
-	// TODO
+	cmds := ct.cmds
+
 	if len(cmds) > 0 {
 		go cmds[ct.selected].Run()
 	}

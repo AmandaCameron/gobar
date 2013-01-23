@@ -82,7 +82,7 @@ func (rc RunningCommand) GetIcon() image.Image {
 }
 
 func (rc RunningCommand) GetText() string {
-	return rc.name
+	return "Focus " + rc.name
 }
 
 func (rc RunningCommand) Run() {
