@@ -16,12 +16,6 @@ type AppCommand struct {
 	app *xdg.Application
 }
 
-func init() {
-	Register(AppSource{
-		Xdg: xdg.New(),
-	})
-}
-
 func (as AppSource) GetMatches(inp string, ct *CommandTray) []Command {
 	cmds := make([]Command, 0)
 
@@ -42,7 +36,12 @@ func (as AppSource) GetMatches(inp string, ct *CommandTray) []Command {
 	return cmds
 }
 
-func (as AppSource) Connect(ct *CommandTray) {
+func (as AppSource) Open(ct *CommandTray) bool {
+	// Do Nothing.
+	return true
+}
+
+func (as AppSource) Close(ct *CommandTray) {
 	// Do Nothing.
 }
 

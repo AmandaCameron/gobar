@@ -53,6 +53,14 @@ func (ns NmSource) GetMatches(inp string, ct *CommandTray) []Command {
 	return cmds
 }
 
+func (ns NmSource) Open(ct *CommandTray) bool {
+	return true
+}
+
+func (ns NmSource) Close(ct *CommandTray) {
+	// Do Nothing.
+}
+
 // Hidden Network
 
 func (nc *NmHiddenCommand) GetText() string {

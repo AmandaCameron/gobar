@@ -72,6 +72,14 @@ func (rs RunningSource) GetMatches(inp string, ct *CommandTray) []Command {
 	return cmds
 }
 
+func (rs RunningSource) Open(ct *CommandTray) bool {
+	return true
+}
+
+func (rs RunningSource) Close(ct *CommandTray) {
+	// Do Nothing.
+}
+
 func (rc RunningCommand) GetIcon() image.Image {
 	ico, err := xgraphics.FindIcon(rc.X, rc.win, 16, 16)
 	if err != nil {

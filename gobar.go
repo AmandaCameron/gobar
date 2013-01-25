@@ -20,7 +20,7 @@ import (
 
 	"dbus/nm"
 	"dbus/upower"
-	//"dbus/wicd"
+	"xdg"
 )
 
 var (
@@ -126,6 +126,11 @@ func main() {
 
 	failMeMaybe(sess.Authenticate())
 
+	// Blash
+
+	x := xdg.New()
+	x.SetTheme("gnome")
+
 	up := upower.New(sys)
 	cli := nm.New(sys)
 
@@ -162,7 +167,15 @@ func main() {
 
 	// Register(NetSource{w: w})
 
-	Register(NewShellSource(sess))
+	Register(NewShellSource(sess, x))
+
+	Register(&AppMenuSource{
+		sessConn: sess,
+	})
+
+	Register(AppSource{
+		Xdg: x,
+	})
 
 	// Status Bar
 

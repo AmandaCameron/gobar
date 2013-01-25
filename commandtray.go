@@ -31,6 +31,7 @@ type Command interface {
 
 type CommandSource interface {
 	GetMatches(string, *CommandTray) []Command
+	Open(*CommandTray) bool
 }
 
 type CommandTray struct {
@@ -44,6 +45,7 @@ type CommandTray struct {
 	mod        string
 	selected   int
 	cmds       []Command
+	active     []CommandSource
 
 	X *xgbutil.XUtil
 }
@@ -124,12 +126,22 @@ func (ct *CommandTray) Focus() {
 
 	ct.initPopup()
 
+	for _, src := range sources {
+		if src.Open(ct) {
+			ct.active = append(ct.active, src)
+		}
+	}
+
 	xevent.MapNotifyFun(func(X *xgbutil.XUtil, e xevent.MapNotifyEvent) {
 		ct.popup.Focus()
 	}).Connect(ct.X, ct.popup.Id)
 
 	ct.popup.Stack(xproto.StackModeAbove)
 	ct.popup.Map()
+
+	ct.Draw()
+
+	ct.getCommands()
 
 	ct.keyPress().Connect(ct.X, ct.popup.Id)
 
@@ -145,6 +157,9 @@ func (ct *CommandTray) Blur() {
 	ct.popup = nil
 
 	ct.input = []rune{}
+
+	ct.active = nil
+	ct.cmds = nil
 
 	ct.Draw()
 }
@@ -196,8 +211,12 @@ func (ct *CommandTray) Draw() {
 
 			ct.popup.Resize(412, bar_size*ncmds)
 
-		} else {
+		} else if len(ct.input) > 0 {
 			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, font_size, font, "No Matches")
+
+			ct.popup.Resize(412, bar_size)
+		} else {
+			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, font_size, font, "Loading...")
 
 			ct.popup.Resize(412, bar_size)
 		}
@@ -220,7 +239,7 @@ func (ct *CommandTray) Draw() {
 func (ct *CommandTray) getCommands() {
 	ct.cmds = make([]Command, 0, 10)
 
-	for _, src := range sources {
+	for _, src := range ct.active {
 		for _, cmd := range src.GetMatches(string(ct.input), ct) {
 			ct.cmds = append(ct.cmds, cmd)
 		}
