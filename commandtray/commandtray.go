@@ -64,6 +64,8 @@ func Register(cs CommandSource) {
 func (ct *CommandTray) Init() {
 	ct.img = xgraphics.New(ct.X, image.Rect(0, 0, ct.Width, ct.Height))
 	ct.pu_img = xgraphics.New(ct.X, image.Rect(0, 0, ct.Width, ct.Height*10))
+
+	keybind.Initialize(ct.X)
 }
 
 func (ct *CommandTray) initPopup() {

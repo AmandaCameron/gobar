@@ -41,17 +41,32 @@ func main() {
 	win, err := xwindow.Create(X, X.RootWin())
 	utils.FailMeMaybe(err)
 
-	win.Move(0, 0)
 	win.Resize(1024, cfg.BarSize)
 
 	// Setup the EWMH Stuff
 
 	utils.FailMeMaybe(ewmh.RestackWindow(X, win.Id))
 
-	strut := &ewmh.WmStrutPartial{
-		Top:       uint(cfg.BarSize),
-		TopStartX: 0,
-		TopEndX:   1024,
+	var strut *ewmh.WmStrutPartial
+
+	if cfg.Position == "Top" {
+		strut = &ewmh.WmStrutPartial{
+			Top:       uint(cfg.BarSize),
+			TopStartX: 0,
+			TopEndX:   1024,
+		}
+		win.Move(0, 0)
+
+	} else if cfg.Position == "Bottom" {
+		strut = &ewmh.WmStrutPartial{
+			Bottom:       uint(cfg.BarSize),
+			BottomStartX: 0,
+			BottomEndX:   1024,
+		}
+		win.Move(0, 600-cfg.BarSize)
+	} else {
+		println("Invalid Position:", cfg.Position)
+		os.Exit(1)
 	}
 
 	utils.FailMeMaybe(ewmh.WmStrutPartialSet(X, win.Id, strut))
@@ -137,13 +152,15 @@ func main() {
 	//ct := commandtray.New(X)
 
 	ct := commandtray.CommandTray{
+		X:        X,
 		Width:    412,
 		Height:   cfg.BarSize,
 		Font:     utils.OpenFont(cfg.CommandFont.Name),
 		FontSize: cfg.CommandFont.Size,
 	}
 
-	ct.Bind("Mod4-n")
+	ct.Init()
+	ct.Bind(cfg.CommandCombo)
 	ct.Connect(win, img)
 
 	// Register(NetSource{w: w})
@@ -165,6 +182,8 @@ func main() {
 		Width:  200,
 		Height: cfg.BarSize,
 	} //statbar.New(X)
+
+	sb.Init()
 
 	if batt != nil {
 		sb.Add(&statbar.SbPower{batt})
@@ -213,6 +232,9 @@ func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, 
 		draw.Draw(bar_img, image.Rect(412, 0, 612, cfg.BarSize), img, image.Point{0, 0}, draw.Over)
 
 		//img.XPaint(win.Id)
+
+		bar_img.XDraw()
+		bar_img.XPaint(win.Id)
 
 		time.Sleep(1 * time.Second)
 	}

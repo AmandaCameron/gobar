@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 
 	"code.google.com/p/freetype-go/freetype/truetype"
@@ -24,6 +25,12 @@ func OpenFont(fileName string) *truetype.Font {
 
 func FailMeMaybe(err error) {
 	if err != nil {
-		panic(err)
+		//panic(err)
+		Fail(err.Error())
 	}
+}
+
+func Fail(err string) {
+	fmt.Printf("Error: %s\n", err)
+	os.Exit(1)
 }
