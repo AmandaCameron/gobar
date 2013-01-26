@@ -10,17 +10,17 @@ import (
 )
 
 type SbNmWifi struct {
-	dev *nm.Device
+	Dev *nm.Device
 }
 
 func (icon *SbNmWifi) Attach(sb *StatusBar) {
-	icon.dev.PropChanged(func(_ *nm.Device) {
+	icon.Dev.PropChanged(func(_ *nm.Device) {
 		sb.Draw()
 	})
 }
 
 func (icon *SbNmWifi) Icon() image.Image {
-	active, err := icon.dev.GetActive()
+	active, err := icon.Dev.GetActive()
 	if err != nil {
 		return images.WifiDC
 	}

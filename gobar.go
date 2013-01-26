@@ -16,6 +16,7 @@ import (
 	"launchpad.net/~jamesh/go-dbus/trunk"
 
 	"github.com/AmandaCameron/gobar/commandtray"
+	"github.com/AmandaCameron/gobar/images"
 	"github.com/AmandaCameron/gobar/statbar"
 
 	"github.com/AmandaCameron/gobar/utils"
@@ -41,14 +42,14 @@ func main() {
 	utils.FailMeMaybe(err)
 
 	win.Move(0, 0)
-	win.Resize(1024, bar_size)
+	win.Resize(1024, cfg.BarSize)
 
 	// Setup the EWMH Stuff
 
 	utils.FailMeMaybe(ewmh.RestackWindow(X, win.Id))
 
 	strut := &ewmh.WmStrutPartial{
-		Top:       uint(bar_size),
+		Top:       uint(cfg.BarSize),
 		TopStartX: 0,
 		TopEndX:   1024,
 	}
@@ -75,7 +76,7 @@ func main() {
 		A: 255,
 	}
 
-	img := xgraphics.New(X, image.Rect(0, 0, 1024, bar_size))
+	img := xgraphics.New(X, image.Rect(0, 0, 1024, cfg.BarSize))
 
 	img.For(func(x, y int) xgraphics.BGRA {
 		return bg
@@ -133,7 +134,14 @@ func main() {
 
 	// Command Tray
 
-	ct := commandtray.New(X)
+	//ct := commandtray.New(X)
+
+	ct := commandtray.CommandTray{
+		Width:    412,
+		Height:   cfg.BarSize,
+		Font:     utils.OpenFont(cfg.CommandFont.Name),
+		FontSize: cfg.CommandFont.Size,
+	}
 
 	ct.Bind("Mod4-n")
 	ct.Connect(win, img)
@@ -143,7 +151,7 @@ func main() {
 	commandtray.Register(commandtray.NewShellSource(sess, x))
 
 	commandtray.Register(&commandtray.AppMenuSource{
-		sessConn: sess,
+		Conn: sess,
 	})
 
 	commandtray.Register(commandtray.AppSource{
@@ -152,7 +160,11 @@ func main() {
 
 	// Status Bar
 
-	sb := statbar.New(X)
+	sb := &statbar.StatusBar{
+		X:      X,
+		Width:  200,
+		Height: cfg.BarSize,
+	} //statbar.New(X)
 
 	if batt != nil {
 		sb.Add(&statbar.SbPower{batt})
@@ -175,7 +187,7 @@ func main() {
 }
 
 func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, cfg *Config) {
-	img := xgraphics.New(X, image.Rect(0, 0, 200, bar_size))
+	img := xgraphics.New(X, image.Rect(0, 0, 200, cfg.BarSize))
 
 	fnt := utils.OpenFont(cfg.ClockFont.Name)
 
@@ -206,45 +218,45 @@ func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, 
 	}
 }
 
-func drawWorkspace(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window) {
-	img := xgraphics.New(X, image.Rect(0, 0, 75, bar_size))
+// func drawWorkspace(X *xgbutil.XUtil, bar_img graphics.Image, win *xwindow.Window, cfg *Config) {
+// 	img := xgraphics.New(X, image.Rect(0, 0, 75, cfg.BarSize))
 
-	workspace_bg := xgraphics.BGRA{
-		R: 32,
-		G: 32,
-		B: 128,
-		A: 255,
-	}
+// 	workspace_bg := xgraphics.BGRA{
+// 		R: 32,
+// 		G: 32,
+// 		B: 128,
+// 		A: 255,
+// 	}
 
-	for {
-		time.Sleep(500 * time.Millisecond)
+// 	for {
+// 		time.Sleep(500 * time.Millisecond)
 
-		img.For(func(x, y int) xgraphics.BGRA {
-			return workspace_bg
-		})
+// 		img.For(func(x, y int) xgraphics.BGRA {
+// 			return workspace_bg
+// 		})
 
-		dsk, err := ewmh.CurrentDesktopGet(X)
+// 		dsk, err := ewmh.CurrentDesktopGet(X)
 
-		if err != nil {
-			continue
-		}
+// 		if err != nil {
+// 			continue
+// 		}
 
-		desks, err := ewmh.DesktopNamesGet(X)
-		if err != nil {
-			continue
-		}
+// 		desks, err := ewmh.DesktopNamesGet(X)
+// 		if err != nil {
+// 			continue
+// 		}
 
-		if int(dsk) >= len(desks) {
-			continue
-		}
+// 		if int(dsk) >= len(desks) {
+// 			continue
+// 		}
 
-		str := desks[dsk]
+// 		str := desks[dsk]
 
-		img.Text(5, bar_size/2-6, color.White, workspace_font_size, fnt, str)
+// 		img.Text(5, cfg.BarSize/2-6, color.White, workspace_font_size, fnt, str)
 
-		draw.Draw(bar_img, image.Rect(949, 0, 1024, 24), img, image.Point{0, 0}, draw.Over)
+// 		draw.Draw(bar_img, image.Rect(949, 0, 1024, 24), img, image.Point{0, 0}, draw.Over)
 
-		bar_img.XDraw()
-		bar_img.XPaint(win.Id)
-	}
-}
+// 		bar_img.XDraw()
+// 		bar_img.XPaint(win.Id)
+// 	}
+// }

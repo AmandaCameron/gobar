@@ -45,10 +45,12 @@ type CommandTray struct {
 	selected   int
 	cmds       []Command
 	active     []CommandSource
-	font_name  string
-	font_size  float64
 
-	X *xgbutil.XUtil
+	Font     *truetype.Font
+	FontSize float64
+	Height   int
+	Width    int
+	X        *xgbutil.XUtil
 }
 
 var (
@@ -59,17 +61,9 @@ func Register(cs CommandSource) {
 	sources = append(sources, cs)
 }
 
-func New(X *xgbutil.XUtil, font_names string, font_size float64) *CommandTray {
-	font = openFont("/usr/share/fonts/dejavu/DejaVuSans.ttf")
-
-	keybind.Initialize(X)
-
-	ct := &CommandTray{
-		X:      X,
-		img:    xgraphics.New(X, image.Rect(0, 0, 412, cfg.BarSize)),
-		pu_img: xgraphics.New(X, image.Rect(0, 0, 412, cfg.BarSize*10)),
-	}
-	return ct
+func (ct *CommandTray) Init() {
+	ct.img = xgraphics.New(ct.X, image.Rect(0, 0, ct.Width, ct.Height))
+	ct.pu_img = xgraphics.New(ct.X, image.Rect(0, 0, ct.Width, ct.Height*10))
 }
 
 func (ct *CommandTray) initPopup() {
@@ -79,7 +73,7 @@ func (ct *CommandTray) initPopup() {
 	utils.FailMeMaybe(err)
 
 	ct.pu_img.For(func(x, y int) xgraphics.BGRA {
-		if y%bar_size == bar_size-1 || x == 0 || x == 412-1 {
+		if y%ct.Height == ct.Height-1 || x == 0 || x == ct.Width-1 {
 			return xgraphics.BGRA{128, 128, 128, 255}
 		}
 		return xgraphics.BGRA{64, 64, 64, 255}
@@ -93,8 +87,8 @@ func (ct *CommandTray) initPopup() {
 
 	utils.FailMeMaybe(ct.popup.Listen(xproto.EventMaskKeyPress | xproto.EventMaskStructureNotify))
 
-	ct.popup.Resize(412, bar_size*10)
-	ct.popup.Move(0, bar_size)
+	ct.popup.Resize(ct.Width, ct.Height*10)
+	ct.popup.Move(0, ct.Height)
 
 	ct.pu_img.XSurfaceSet(ct.popup.Id)
 
@@ -171,17 +165,17 @@ func (ct *CommandTray) Draw() {
 	})
 
 	if ct.is_focused {
-		ct.img.Text(5, 4, color.White, font_size, font, string(ct.input))
+		ct.img.Text(5, 4, color.White, ct.FontSize, ct.Font, string(ct.input))
 
-		draw.Draw(ct.bar_img, image.Rect(0, 0, 412, bar_size), ct.img, image.Point{0, 0}, draw.Over)
+		draw.Draw(ct.bar_img, image.Rect(0, 0, ct.Width, ct.Height), ct.img, image.Point{0, 0}, draw.Over)
 
 		ct.bar_img.XDraw()
 		ct.bar_img.XPaint(ct.bar_win.Id)
 
 		ct.pu_img.For(func(x, y int) xgraphics.BGRA {
-			if y%bar_size == bar_size-1 || y == 0 || x == 0 || x == 412-1 {
+			if y%ct.Height == ct.Height-1 || y == 0 || x == 0 || x == ct.Width-1 {
 				return xgraphics.BGRA{128, 128, 128, 255}
-			} else if y/bar_size == ct.selected {
+			} else if y/ct.Height == ct.selected {
 				return xgraphics.BGRA{96, 96, 96, 255}
 			}
 			return xgraphics.BGRA{64, 64, 64, 255}
@@ -193,11 +187,11 @@ func (ct *CommandTray) Draw() {
 				ico := cmd.GetIcon()
 
 				if ico != nil {
-					draw.Draw(ct.pu_img, image.Rect(4, (bar_size*i)+4, 20, (bar_size*i)+20),
+					draw.Draw(ct.pu_img, image.Rect(4, (ct.Height*i)+4, 20, (ct.Height*i)+20),
 						ico, image.Point{0, 0}, draw.Over)
 				}
 
-				ct.pu_img.Text(24, (bar_size*(i))+4, color.White, font_size, font,
+				ct.pu_img.Text(24, (ct.Height*(i))+4, color.White, ct.FontSize, ct.Font,
 					cmd.GetText())
 
 				if i >= 10 {
@@ -210,26 +204,26 @@ func (ct *CommandTray) Draw() {
 				ncmds = 10
 			}
 
-			ct.popup.Resize(412, bar_size*ncmds)
+			ct.popup.Resize(ct.Width, ct.Height*ncmds)
 
 		} else if len(ct.input) > 0 {
-			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, font_size, font, "No Matches")
+			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, ct.FontSize, ct.Font, "No Matches")
 
-			ct.popup.Resize(412, bar_size)
+			ct.popup.Resize(ct.Width, ct.Height)
 		} else {
-			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, font_size, font, "Loading...")
+			ct.pu_img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, ct.FontSize, ct.Font, "Loading...")
 
-			ct.popup.Resize(412, bar_size)
+			ct.popup.Resize(ct.Width, ct.Height)
 		}
 
 		ct.pu_img.XDraw()
 		ct.pu_img.XPaint(ct.popup.Id)
 
 	} else {
-		ct.img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, font_size, font,
+		ct.img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, ct.FontSize, ct.Font,
 			"Press "+ct.mod+" to type a command")
 
-		draw.Draw(ct.bar_img, image.Rect(0, 0, 412, bar_size), ct.img, image.Point{0, 0}, draw.Over)
+		draw.Draw(ct.bar_img, image.Rect(0, 0, ct.Width, ct.Height), ct.img, image.Point{0, 0}, draw.Over)
 
 	}
 

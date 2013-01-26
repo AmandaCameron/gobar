@@ -5,16 +5,17 @@ import (
 	"image/draw"
 	"strings"
 
+	"github.com/AmandaCameron/gobar/images"
 	"github.com/AmandaCameron/gobar/utils/dbus/nm"
 )
 
 type NmSource struct {
 	// cli *nm.Client
-	dev *nm.Device
+	Dev *nm.Device
 }
 
 type NmHiddenCommand struct {
-	dev *nm.Device
+	Dev *nm.Device
 }
 
 type NmCommand struct {
@@ -22,7 +23,7 @@ type NmCommand struct {
 }
 
 func (ns NmSource) GetMatches(inp string, ct *CommandTray) []Command {
-	aps, err := ns.dev.GetAccessPoints()
+	aps, err := ns.Dev.GetAccessPoints()
 	if err != nil {
 		return []Command{}
 	}
@@ -46,7 +47,7 @@ func (ns NmSource) GetMatches(inp string, ct *CommandTray) []Command {
 	if strings.Contains("connect to hidden wifi", inp) {
 		cmds = append(cmds, &NmHiddenCommand{
 			//cli: ns.cli,
-			dev: ns.dev,
+			Dev: ns.Dev,
 		})
 	}
 
@@ -68,7 +69,7 @@ func (nc *NmHiddenCommand) GetText() string {
 }
 
 func (nc *NmHiddenCommand) GetIcon() image.Image {
-	return wifi_4_img
+	return images.Wifi_4
 }
 
 func (nc *NmHiddenCommand) Run() {
@@ -89,7 +90,7 @@ func (nc *NmCommand) GetText() string {
 func (nc *NmCommand) GetIcon() image.Image {
 	str, err := nc.ap.Strength()
 	if err != nil {
-		return wifi_dc_img
+		return images.WifiDC
 	}
 
 	flags, err := nc.ap.Flags()
@@ -100,13 +101,13 @@ func (nc *NmCommand) GetIcon() image.Image {
 	if (flags & 1) == 1 {
 		img := image.NewRGBA(image.Rect(0, 0, 16, 16))
 
-		draw.Draw(img, image.Rect(0, 0, 16, 16), wifiStrengthImage(int32(str)), image.Point{0, 0}, draw.Over)
-		draw.Draw(img, image.Rect(0, 0, 16, 16), wifi_enc_image, image.Point{0, 0}, draw.Over)
+		draw.Draw(img, image.Rect(0, 0, 16, 16), images.WifiStrengthImage(str), image.Point{0, 0}, draw.Over)
+		draw.Draw(img, image.Rect(0, 0, 16, 16), images.WifiEnc, image.Point{0, 0}, draw.Over)
 
 		return img
 	}
 
-	return wifiStrengthImage(int32(str))
+	return images.WifiStrengthImage(str)
 }
 
 func (nc *NmCommand) Run() {

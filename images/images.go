@@ -60,7 +60,7 @@ func Init() {
 	Battery_1 = openImage("battery-1.png")
 }
 
-func WifiStrengthImage(strength int32) image.Image {
+func WifiStrengthImage(strength byte) image.Image {
 	switch {
 	case strength >= 80:
 		return Wifi_4

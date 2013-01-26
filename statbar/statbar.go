@@ -17,6 +17,10 @@ var (
 )
 
 type StatusBar struct {
+	Width  int
+	Height int
+	X      *xgbutil.XUtil
+
 	img     *xgraphics.Image
 	bar_img *xgraphics.Image
 
@@ -31,12 +35,8 @@ type StatusItem interface {
 	Attach(sb *StatusBar)
 }
 
-func New(X *xgbutil.XUtil) *StatusBar {
-	sb := &StatusBar{
-		img: xgraphics.New(X, image.Rect(0, 0, 200, bar_size)),
-	}
-
-	return sb
+func (sb *StatusBar) Init() {
+	sb.img = xgraphics.New(sb.X, image.Rect(0, 0, sb.Width, sb.Height))
 }
 
 func (sb *StatusBar) Add(icon StatusItem) {
@@ -68,5 +68,5 @@ func (sb *StatusBar) Draw() {
 		x += img_width + 2
 	}
 
-	draw.Draw(sb.bar_img, image.Rect(612, 0, 812, bar_size), sb.img, image.Point{0, 0}, draw.Over)
+	draw.Draw(sb.bar_img, image.Rect(612, 0, 812, sb.Height), sb.img, image.Point{0, 0}, draw.Over)
 }

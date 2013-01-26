@@ -11,11 +11,11 @@ import (
 )
 
 type SbPower struct {
-	dev *upower.Device
+	Dev *upower.Device
 }
 
 func (icon *SbPower) Attach(sb *StatusBar) {
-	icon.dev.Connect(func(_ *upower.Device) {
+	icon.Dev.Connect(func(_ *upower.Device) {
 		// fmt.Printf("[SB] (Power) State Changed.\n")
 		sb.Draw()
 	})
@@ -24,12 +24,12 @@ func (icon *SbPower) Attach(sb *StatusBar) {
 func (icon *SbPower) Icon() image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, 34, 16))
 
-	state, err := icon.dev.State()
+	state, err := icon.Dev.State()
 	if err != nil {
 		return img
 	}
 
-	charge, err := icon.dev.Charge()
+	charge, err := icon.Dev.Charge()
 	if err != nil {
 		return img
 	}

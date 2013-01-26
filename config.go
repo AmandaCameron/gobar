@@ -19,26 +19,36 @@ type FontInfo struct {
 
 func loadConfig(fileName string) *Config {
 	dat, err := wini.Parse(fileName)
+	utils.FailMeMaybe(err)
 
 	cfg := &Config{}
 
 	loadFont(dat, "Clock", &cfg.ClockFont)
 	loadFont(dat, "Command", &cfg.CommandFont)
 
-	tmp, err := dat.GetKey("Theme", "Size").Ints()[0]
+	tmp, err := dat.GetKey("Theme", "Size").Ints()
 	utils.FailMeMaybe(err)
+
+	cfg.BarSize = tmp[0]
 
 	return cfg
 }
 
-func loadFont(dat *wini.Data, name string, target *FontInfo) error {
-	tmp, err := dat.GetKey("Fonts/"+name, "Name")
+func loadFont(dat *wini.Data, name string, target *FontInfo) {
+	tmp := dat.GetKey("Fonts/"+name, "Name")
+	//utils.FailMeMaybe(err)
+
+	name = tmp.String()
+
+	tmp = dat.GetKey("Fonts/"+name, "Size")
+	//utils.FailMeMaybe(err)
+
+	tmp2, err := tmp.Floats()
 	utils.FailMeMaybe(err)
 
-	*target.Name = tmp.String()
+	size := tmp2[0]
 
-	tmp, err = dat.GetKey("Fonts/"+name, "Size")
-	utils.FailMeMaybe(err)
-
-	*target.Size = tmp.Floats()[0]
+	*target = FontInfo{
+		name, size,
+	}
 }

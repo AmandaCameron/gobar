@@ -12,9 +12,9 @@ import (
 )
 
 type AppMenuSource struct {
-	sessConn *dbus.Connection
-	menu     *utils.GtkMenu
-	app      *utils.GtkActions
+	Conn *dbus.Connection
+	menu *utils.GtkMenu
+	app  *utils.GtkActions
 }
 
 type AppMenuCommand struct {
@@ -81,11 +81,11 @@ func (ams *AppMenuSource) Open(ct *CommandTray) bool {
 	// Done parsing props! Yay!
 
 	ams.app = &utils.GtkActions{
-		ams.sessConn.Object(uniqName, dbus.ObjectPath(pathApp)),
+		ams.Conn.Object(uniqName, dbus.ObjectPath(pathApp)),
 	}
 
 	ams.menu = &utils.GtkMenu{
-		ams.sessConn.Object(uniqName, dbus.ObjectPath(pathMenu)),
+		ams.Conn.Object(uniqName, dbus.ObjectPath(pathMenu)),
 	}
 
 	return true

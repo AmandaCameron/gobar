@@ -9,6 +9,7 @@ import (
 	"code.google.com/p/goconf/conf"
 	"launchpad.net/~jamesh/go-dbus/trunk"
 
+	"github.com/AmandaCameron/gobar/utils"
 	"github.com/AmandaCameron/gobar/utils/dbus/gs_search"
 	"github.com/AmandaCameron/gobar/utils/xdg"
 )
@@ -39,13 +40,13 @@ func NewShellSource(sess *dbus.Connection, x *xdg.XDG) *ShellSource {
 	} {
 
 		srcs, err := ioutil.ReadDir(dir)
-		//failMeMaybe(err)
+		//utils.FailMeMaybe(err)
 		if err != nil {
 			continue
 		}
 		for _, file := range srcs {
 			cfg, err := conf.ReadConfigFile(dir + "/" + file.Name())
-			failMeMaybe(err)
+			utils.FailMeMaybe(err)
 
 			SSP := "Shell Search Provider"
 
