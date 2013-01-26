@@ -1,11 +1,11 @@
-package main
+package commandtray
 
 import (
 	"image"
 	"image/draw"
 	"strings"
 
-	"dbus/nm"
+	"github.com/AmandaCameron/gobar/utils/dbus/nm"
 )
 
 type NmSource struct {

@@ -1,11 +1,11 @@
-package main
+package commandtray
 
 import (
 	"fmt"
 	"image"
 	"strings"
 
-	"xdg"
+	"github.com/AmandaCameron/gobar/utils/xdg"
 )
 
 type AppSource struct {

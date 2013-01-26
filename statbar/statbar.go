@@ -1,4 +1,4 @@
-package main
+package statbar
 
 import (
 	//"fmt"
@@ -31,7 +31,7 @@ type StatusItem interface {
 	Attach(sb *StatusBar)
 }
 
-func NewStatusBar(X *xgbutil.XUtil) *StatusBar {
+func New(X *xgbutil.XUtil) *StatusBar {
 	sb := &StatusBar{
 		img: xgraphics.New(X, image.Rect(0, 0, 200, bar_size)),
 	}

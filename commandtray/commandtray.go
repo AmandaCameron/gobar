@@ -1,4 +1,4 @@
-package main
+package commandtray
 
 import (
 	"image"
@@ -16,12 +16,11 @@ import (
 	"github.com/BurntSushi/xgbutil/xevent"
 	"github.com/BurntSushi/xgbutil/xgraphics"
 	"github.com/BurntSushi/xgbutil/xwindow"
+
+	"github.com/AmandaCameron/gobar/utils"
 )
 
-var (
-	font      *truetype.Font
-	font_size float64 = 12
-)
+var font *truetype.Font
 
 type Command interface {
 	GetIcon() image.Image
@@ -46,6 +45,8 @@ type CommandTray struct {
 	selected   int
 	cmds       []Command
 	active     []CommandSource
+	font_name  string
+	font_size  float64
 
 	X *xgbutil.XUtil
 }
@@ -58,15 +59,15 @@ func Register(cs CommandSource) {
 	sources = append(sources, cs)
 }
 
-func NewCommandTray(X *xgbutil.XUtil) *CommandTray {
+func New(X *xgbutil.XUtil, font_names string, font_size float64) *CommandTray {
 	font = openFont("/usr/share/fonts/dejavu/DejaVuSans.ttf")
 
 	keybind.Initialize(X)
 
 	ct := &CommandTray{
 		X:      X,
-		img:    xgraphics.New(X, image.Rect(0, 0, 412, bar_size)),
-		pu_img: xgraphics.New(X, image.Rect(0, 0, 412, bar_size*10)),
+		img:    xgraphics.New(X, image.Rect(0, 0, 412, cfg.BarSize)),
+		pu_img: xgraphics.New(X, image.Rect(0, 0, 412, cfg.BarSize*10)),
 	}
 	return ct
 }
@@ -75,7 +76,7 @@ func (ct *CommandTray) initPopup() {
 	var err error
 
 	ct.popup, err = xwindow.Create(ct.X, ct.X.RootWin())
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
 	ct.pu_img.For(func(x, y int) xgraphics.BGRA {
 		if y%bar_size == bar_size-1 || x == 0 || x == 412-1 {
@@ -84,13 +85,13 @@ func (ct *CommandTray) initPopup() {
 		return xgraphics.BGRA{64, 64, 64, 255}
 	})
 
-	failMeMaybe(ewmh.WmDesktopSet(ct.X, ct.popup.Id, 0xffffffff))
+	utils.FailMeMaybe(ewmh.WmDesktopSet(ct.X, ct.popup.Id, 0xffffffff))
 
-	failMeMaybe(ewmh.WmWindowTypeSet(ct.X, ct.popup.Id, []string{
+	utils.FailMeMaybe(ewmh.WmWindowTypeSet(ct.X, ct.popup.Id, []string{
 		"_NET_WM_WINDOW_TYPE_DOCK",
 	}))
 
-	failMeMaybe(ct.popup.Listen(xproto.EventMaskKeyPress | xproto.EventMaskStructureNotify))
+	utils.FailMeMaybe(ct.popup.Listen(xproto.EventMaskKeyPress | xproto.EventMaskStructureNotify))
 
 	ct.popup.Resize(412, bar_size*10)
 	ct.popup.Move(0, bar_size)

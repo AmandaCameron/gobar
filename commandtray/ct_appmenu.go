@@ -1,4 +1,4 @@
-package main
+package commandtray
 
 import (
 	"image"
@@ -7,16 +7,18 @@ import (
 	"github.com/BurntSushi/xgbutil/ewmh"
 	"github.com/BurntSushi/xgbutil/xprop"
 	"launchpad.net/~jamesh/go-dbus/trunk"
+
+	"github.com/AmandaCameron/gobar/utils"
 )
 
 type AppMenuSource struct {
 	sessConn *dbus.Connection
-	menu     *GtkMenu
-	app      *GtkActions
+	menu     *utils.GtkMenu
+	app      *utils.GtkActions
 }
 
 type AppMenuCommand struct {
-	AppCommand *GtkActions
+	AppCommand *utils.GtkActions
 	opt        map[string]dbus.Variant
 }
 
@@ -78,11 +80,11 @@ func (ams *AppMenuSource) Open(ct *CommandTray) bool {
 
 	// Done parsing props! Yay!
 
-	ams.app = &GtkActions{
+	ams.app = &utils.GtkActions{
 		ams.sessConn.Object(uniqName, dbus.ObjectPath(pathApp)),
 	}
 
-	ams.menu = &GtkMenu{
+	ams.menu = &utils.GtkMenu{
 		ams.sessConn.Object(uniqName, dbus.ObjectPath(pathMenu)),
 	}
 

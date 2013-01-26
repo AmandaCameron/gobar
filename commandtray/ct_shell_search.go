@@ -1,4 +1,4 @@
-package main
+package commandtray
 
 import (
 	"image"
@@ -9,8 +9,8 @@ import (
 	"code.google.com/p/goconf/conf"
 	"launchpad.net/~jamesh/go-dbus/trunk"
 
-	"dbus/gs_search"
-	"xdg"
+	"github.com/AmandaCameron/gobar/utils/dbus/gs_search"
+	"github.com/AmandaCameron/gobar/utils/xdg"
 )
 
 type ShellSource struct {

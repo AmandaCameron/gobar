@@ -7,72 +7,45 @@ import (
 	"os"
 	"time"
 
-	"code.google.com/p/freetype-go/freetype/truetype"
-
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/ewmh"
 	"github.com/BurntSushi/xgbutil/xevent"
 	"github.com/BurntSushi/xgbutil/xgraphics"
 	"github.com/BurntSushi/xgbutil/xwindow"
 
-	// "github.com/norisatir/go-dbus"
 	"launchpad.net/~jamesh/go-dbus/trunk"
 
-	"dbus/nm"
-	"dbus/upower"
-	"xdg"
+	"github.com/AmandaCameron/gobar/commandtray"
+	"github.com/AmandaCameron/gobar/statbar"
+
+	"github.com/AmandaCameron/gobar/utils"
+	"github.com/AmandaCameron/gobar/utils/dbus/nm"
+	"github.com/AmandaCameron/gobar/utils/dbus/upower"
+	"github.com/AmandaCameron/gobar/utils/xdg"
 )
-
-var (
-	clock_font      string  = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"
-	clock_font_size float64 = 12
-
-	workspace_font      string  = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
-	workspace_font_size float64 = 12
-
-	title_font      string  = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
-	title_font_size float64 = 12
-
-	status_font      string  = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
-	status_font_size float64 = 12
-
-	bar_size int = 24
-)
-
-func openFont(fileName string) *truetype.Font {
-	f, err := os.Open(fileName)
-
-	failMeMaybe(err)
-
-	defer f.Close()
-
-	fnt, err := xgraphics.ParseFont(f)
-
-	failMeMaybe(err)
-
-	return fnt
-}
 
 func main() {
 
+	cfg := loadConfig(os.Getenv("HOME") + "/.config/gobar/config.wini")
+
 	// Load Images.
 
-	initImages()
+	images.Init()
 
 	// Setup the X Connection
 
 	X, err := xgbutil.NewConn()
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
 	win, err := xwindow.Create(X, X.RootWin())
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
 	win.Move(0, 0)
 	win.Resize(1024, bar_size)
 
 	// Setup the EWMH Stuff
 
-	failMeMaybe(ewmh.RestackWindow(X, win.Id))
+	utils.FailMeMaybe(ewmh.RestackWindow(X, win.Id))
 
 	strut := &ewmh.WmStrutPartial{
 		Top:       uint(bar_size),
@@ -80,14 +53,14 @@ func main() {
 		TopEndX:   1024,
 	}
 
-	failMeMaybe(ewmh.WmStrutPartialSet(X, win.Id, strut))
+	utils.FailMeMaybe(ewmh.WmStrutPartialSet(X, win.Id, strut))
 
-	failMeMaybe(ewmh.WmWindowTypeSet(X, win.Id, []string{
+	utils.FailMeMaybe(ewmh.WmWindowTypeSet(X, win.Id, []string{
 		"_NET_WM_WINDOW_TYPE_DOCK",
 	}))
 
 	// Put us everywhere.
-	failMeMaybe(ewmh.WmDesktopSet(X, win.Id, 0xFFFFFFFF))
+	utils.FailMeMaybe(ewmh.WmDesktopSet(X, win.Id, 0xFFFFFFFF))
 
 	// Show the window?
 
@@ -108,23 +81,23 @@ func main() {
 		return bg
 	})
 
-	failMeMaybe(img.XSurfaceSet(win.Id))
+	utils.FailMeMaybe(img.XSurfaceSet(win.Id))
 	img.XDraw()
 	img.XPaint(win.Id)
 
 	// Connect to DBus
 
 	sys, err := dbus.Connect(dbus.SystemBus)
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
-	failMeMaybe(sys.Authenticate())
+	utils.FailMeMaybe(sys.Authenticate())
 
 	// TODO: This will come in handy sometime.
 
 	sess, err := dbus.Connect(dbus.SessionBus)
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
-	failMeMaybe(sess.Authenticate())
+	utils.FailMeMaybe(sess.Authenticate())
 
 	// Blash
 
@@ -135,7 +108,7 @@ func main() {
 	cli := nm.New(sys)
 
 	devs, err := cli.GetDevices()
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
 	var dev *nm.Device
 	var batt *upower.Device
@@ -149,7 +122,7 @@ func main() {
 	}
 
 	pdevs, err := up.GetDevices()
-	failMeMaybe(err)
+	utils.FailMeMaybe(err)
 
 	for _, d := range pdevs {
 		if d.Type() == upower.Battery {
@@ -160,34 +133,34 @@ func main() {
 
 	// Command Tray
 
-	ct := NewCommandTray(X)
+	ct := commandtray.New(X)
 
 	ct.Bind("Mod4-n")
 	ct.Connect(win, img)
 
 	// Register(NetSource{w: w})
 
-	Register(NewShellSource(sess, x))
+	commandtray.Register(commandtray.NewShellSource(sess, x))
 
-	Register(&AppMenuSource{
+	commandtray.Register(&commandtray.AppMenuSource{
 		sessConn: sess,
 	})
 
-	Register(AppSource{
+	commandtray.Register(commandtray.AppSource{
 		Xdg: x,
 	})
 
 	// Status Bar
 
-	sb := NewStatusBar(X)
+	sb := statbar.New(X)
 
 	if batt != nil {
-		sb.Add(&SbPower{batt})
+		sb.Add(&statbar.SbPower{batt})
 	}
 
 	if dev != nil {
-		sb.Add(&SbNmWifi{dev})
-		Register(NmSource{dev})
+		sb.Add(&statbar.SbNmWifi{dev})
+		commandtray.Register(commandtray.NmSource{dev})
 	}
 
 	sb.Connect(img)
@@ -195,17 +168,16 @@ func main() {
 
 	// My My this anikin guy...
 
-	go drawClock(X, img, win)
-	go drawWorkspace(X, img, win)
+	go drawClock(X, img, win, cfg)
+	//go drawWorkspace(X, img, win)
 
 	xevent.Main(X)
 }
 
-func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window) {
-	//img := bar_img.SubImage(image.Rect(0, 412, 612, bar_size))
+func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, cfg *Config) {
 	img := xgraphics.New(X, image.Rect(0, 0, 200, bar_size))
-	// failMeMaybe(err)
-	fnt := openFont(clock_font)
+
+	fnt := utils.OpenFont(cfg.ClockFont.Name)
 
 	for {
 		clock_bg := xgraphics.BGRA{
@@ -222,11 +194,11 @@ func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window) 
 		now := time.Now()
 		str := now.Format("2006-01-02 15:04:05")
 
-		_, h := xgraphics.TextMaxExtents(fnt, clock_font_size, str)
+		_, h := xgraphics.TextMaxExtents(fnt, cfg.ClockFont.Size, str)
 
-		img.Text(25, (bar_size/2)-(h/2), color.White, clock_font_size, fnt, str)
+		img.Text(25, (cfg.BarSize/2)-(h/2), color.White, cfg.ClockFont.Size, fnt, str)
 
-		draw.Draw(bar_img, image.Rect(412, 0, 612, bar_size), img, image.Point{0, 0}, draw.Over)
+		draw.Draw(bar_img, image.Rect(412, 0, 612, cfg.BarSize), img, image.Point{0, 0}, draw.Over)
 
 		//img.XPaint(win.Id)
 
@@ -236,10 +208,6 @@ func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window) 
 
 func drawWorkspace(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window) {
 	img := xgraphics.New(X, image.Rect(0, 0, 75, bar_size))
-	//img := bar_img.SubImage(image.Rect(949, 0, 1024, bar_size))
-
-	// failMeMaybe(err)
-	fnt := openFont(workspace_font)
 
 	workspace_bg := xgraphics.BGRA{
 		R: 32,
@@ -275,8 +243,6 @@ func drawWorkspace(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Wind
 		img.Text(5, bar_size/2-6, color.White, workspace_font_size, fnt, str)
 
 		draw.Draw(bar_img, image.Rect(949, 0, 1024, 24), img, image.Point{0, 0}, draw.Over)
-
-		//		img.XPaint(win.Id)
 
 		bar_img.XDraw()
 		bar_img.XPaint(win.Id)

@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"launchpad.net/~jamesh/go-dbus/trunk"

@@ -1,11 +1,13 @@
-package main
+package statbar
 
 import (
 	// "fmt"
 	"image"
 	"image/draw"
 
-	"dbus/upower"
+	"github.com/AmandaCameron/gobar/images"
+
+	"github.com/AmandaCameron/gobar/utils/dbus/upower"
 )
 
 type SbPower struct {
@@ -33,22 +35,22 @@ func (icon *SbPower) Icon() image.Image {
 	}
 
 	if state == upower.Charging || state == upower.Full {
-		draw.Draw(img, image.Rect(0, 0, 16, 16), charging_img, image.Point{0, 0}, draw.Over)
+		draw.Draw(img, image.Rect(0, 0, 16, 16), images.Charging, image.Point{0, 0}, draw.Over)
 	}
 
 	var bimg image.Image
 
 	switch {
 	case charge > 90:
-		bimg = battery_5_img
+		bimg = images.Battery_5
 	case charge > 50:
-		bimg = battery_4_img
+		bimg = images.Battery_4
 	case charge > 25:
-		bimg = battery_3_img
+		bimg = images.Battery_3
 	case charge > 10:
-		bimg = battery_2_img
+		bimg = images.Battery_2
 	case charge <= 10:
-		bimg = battery_1_img
+		bimg = images.Battery_1
 	}
 
 	draw.Draw(img, image.Rect(18, 0, 34, 16), bimg, image.Point{0, 0}, draw.Over)
