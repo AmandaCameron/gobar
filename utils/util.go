@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"code.google.com/p/freetype-go/freetype/truetype"
+	"code.google.com/p/jamslam-freetype-go/freetype/truetype"
 
 	"github.com/BurntSushi/xgbutil/xgraphics"
 )

@@ -2,10 +2,10 @@ package main
 
 import (
 	"image"
-	"image/color"
-	"image/draw"
+	// "image/color"
+	// "image/draw"
 	"os"
-	"time"
+	// "time"
 
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/ewmh"
@@ -53,16 +53,17 @@ func main() {
 		strut = &ewmh.WmStrutPartial{
 			Top:       uint(cfg.BarSize),
 			TopStartX: 0,
-			TopEndX:   1024,
+			TopEndX:   uint(cfg.BarWidth),
 		}
-		win.Move(0, 0)
 
+		win.Move(0, 0)
 	} else if cfg.Position == "Bottom" {
 		strut = &ewmh.WmStrutPartial{
 			Bottom:       uint(cfg.BarSize),
 			BottomStartX: 0,
-			BottomEndX:   1024,
+			BottomEndX:   uint(cfg.BarWidth),
 		}
+
 		win.Move(0, 600-cfg.BarSize)
 	} else {
 		println("Invalid Position:", cfg.Position)
@@ -153,15 +154,17 @@ func main() {
 
 	ct := commandtray.CommandTray{
 		X:        X,
-		Width:    412,
+		Width:    cfg.Command.Width,
 		Height:   cfg.BarSize,
-		Font:     utils.OpenFont(cfg.CommandFont.Name),
-		FontSize: cfg.CommandFont.Size,
+		Position: cfg.Command.Position,
+		Parent:   win,
+		Font:     utils.OpenFont(cfg.Command.Font.Name),
+		FontSize: cfg.Command.Font.Size,
 	}
 
 	ct.Init()
 	ct.Bind(cfg.CommandCombo)
-	ct.Connect(win, img)
+	ct.Draw()
 
 	// Register(NetSource{w: w})
 
@@ -178,9 +181,11 @@ func main() {
 	// Status Bar
 
 	sb := &statbar.StatusBar{
-		X:      X,
-		Width:  200,
-		Height: cfg.BarSize,
+		X:        X,
+		Width:    cfg.StatusBar.Width,
+		Position: cfg.StatusBar.Position,
+		Height:   cfg.BarSize,
+		Parent:   win,
 	} //statbar.New(X)
 
 	sb.Init()
@@ -194,51 +199,61 @@ func main() {
 		commandtray.Register(commandtray.NmSource{dev})
 	}
 
-	sb.Connect(img)
 	sb.Draw()
 
 	// My My this anikin guy...
 
-	go drawClock(X, img, win, cfg)
-	//go drawWorkspace(X, img, win)
+	clck := &Clock{
+		X:          X,
+		Position:   cfg.Clock.Position,
+		Width:      cfg.Clock.Width,
+		Height:     cfg.BarSize,
+		Parent:     win,
+		Background: xgraphics.BGRA{R: 48, G: 48, B: 48, A: 255},
+		Foreground: xgraphics.BGRA{R: 255, G: 255, B: 255, A: 255},
+		Font:       utils.OpenFont(cfg.Clock.Font.Name),
+		FontSize:   cfg.Clock.Font.Size,
+	}
+
+	clck.Init()
 
 	xevent.Main(X)
 }
 
-func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, cfg *Config) {
-	img := xgraphics.New(X, image.Rect(0, 0, 200, cfg.BarSize))
+// func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, cfg *Config) {
+// 	img := xgraphics.New(X, image.Rect(0, 0, 200, cfg.BarSize))
 
-	fnt := utils.OpenFont(cfg.ClockFont.Name)
+// 	fnt := utils.OpenFont(cfg.ClockFont.Name)
 
-	for {
-		clock_bg := xgraphics.BGRA{
-			R: 48,
-			G: 48,
-			B: 48,
-			A: 255,
-		}
+// 	for {
+// 		clock_bg := xgraphics.BGRA{
+// 			R: 48,
+// 			G: 48,
+// 			B: 48,
+// 			A: 255,
+// 		}
 
-		img.For(func(x, y int) xgraphics.BGRA {
-			return clock_bg
-		})
+// 		img.For(func(x, y int) xgraphics.BGRA {
+// 			return clock_bg
+// 		})
 
-		now := time.Now()
-		str := now.Format("2006-01-02 15:04:05")
+// 		now := time.Now()
+// 		str := now.Format("2006-01-02 15:04:05")
 
-		_, h := xgraphics.TextMaxExtents(fnt, cfg.ClockFont.Size, str)
+// 		_, h := xgraphics.TextMaxExtents(fnt, cfg.ClockFont.Size, str)
 
-		img.Text(25, (cfg.BarSize/2)-(h/2), color.White, cfg.ClockFont.Size, fnt, str)
+// 		img.Text(25, (cfg.BarSize/2)-(h/2), color.White, cfg.ClockFont.Size, fnt, str)
 
-		draw.Draw(bar_img, image.Rect(412, 0, 612, cfg.BarSize), img, image.Point{0, 0}, draw.Over)
+// 		draw.Draw(bar_img, image.Rect(412, 0, 612, cfg.BarSize), img, image.Point{0, 0}, draw.Over)
 
-		//img.XPaint(win.Id)
+// 		//img.XPaint(win.Id)
 
-		bar_img.XDraw()
-		bar_img.XPaint(win.Id)
+// 		bar_img.XDraw()
+// 		bar_img.XPaint(win.Id)
 
-		time.Sleep(1 * time.Second)
-	}
-}
+// 		time.Sleep(1 * time.Second)
+// 	}
+// }
 
 // func drawWorkspace(X *xgbutil.XUtil, bar_img graphics.Image, win *xwindow.Window, cfg *Config) {
 // 	img := xgraphics.New(X, image.Rect(0, 0, 75, cfg.BarSize))

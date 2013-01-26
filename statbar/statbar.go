@@ -7,6 +7,9 @@ import (
 
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/xgraphics"
+	"github.com/BurntSushi/xgbutil/xwindow"
+
+	"github.com/AmandaCameron/gobar/utils"
 
 	// "dbus/upower"
 	// "dbus/wicd"
@@ -17,12 +20,14 @@ var (
 )
 
 type StatusBar struct {
-	Width  int
-	Height int
-	X      *xgbutil.XUtil
+	Width    int
+	Height   int
+	Position int
+	Parent   *xwindow.Window
+	X        *xgbutil.XUtil
 
-	img     *xgraphics.Image
-	bar_img *xgraphics.Image
+	img    *xgraphics.Image
+	window *xwindow.Window
 
 	items []StatusItem
 
@@ -37,15 +42,23 @@ type StatusItem interface {
 
 func (sb *StatusBar) Init() {
 	sb.img = xgraphics.New(sb.X, image.Rect(0, 0, sb.Width, sb.Height))
+	var err error
+
+	sb.window, err = xwindow.Create(sb.X, sb.Parent.Id)
+	utils.FailMeMaybe(err)
+
+	sb.window.Move(sb.Position, 0)
+	sb.window.Resize(sb.Width, sb.Height)
+	sb.window.Map()
+
+	sb.img.XSurfaceSet(sb.window.Id)
+
+	sb.Draw()
 }
 
 func (sb *StatusBar) Add(icon StatusItem) {
 	sb.items = append(sb.items, icon)
 	icon.Attach(sb)
-}
-
-func (sb *StatusBar) Connect(img *xgraphics.Image) {
-	sb.bar_img = img
 }
 
 func (sb *StatusBar) Draw() {
@@ -68,5 +81,6 @@ func (sb *StatusBar) Draw() {
 		x += img_width + 2
 	}
 
-	draw.Draw(sb.bar_img, image.Rect(612, 0, 812, sb.Height), sb.img, image.Point{0, 0}, draw.Over)
+	sb.img.XDraw()
+	sb.img.XPaint(sb.window.Id)
 }

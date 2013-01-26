@@ -7,7 +7,7 @@ import (
 
 	"strings"
 
-	"code.google.com/p/freetype-go/freetype/truetype"
+	"code.google.com/p/jamslam-freetype-go/freetype/truetype"
 
 	"github.com/BurntSushi/xgb/xproto"
 	"github.com/BurntSushi/xgbutil"
@@ -35,10 +35,9 @@ type CommandSource interface {
 
 type CommandTray struct {
 	img        *xgraphics.Image
-	bar_img    *xgraphics.Image
-	bar_win    *xwindow.Window
 	pu_img     *xgraphics.Image
 	popup      *xwindow.Window
+	window     *xwindow.Window
 	is_focused bool
 	input      []rune
 	mod        string
@@ -51,6 +50,8 @@ type CommandTray struct {
 	Height   int
 	Width    int
 	X        *xgbutil.XUtil
+	Position int
+	Parent   *xwindow.Window
 }
 
 var (
@@ -62,8 +63,19 @@ func Register(cs CommandSource) {
 }
 
 func (ct *CommandTray) Init() {
+	var err error
+
 	ct.img = xgraphics.New(ct.X, image.Rect(0, 0, ct.Width, ct.Height))
 	ct.pu_img = xgraphics.New(ct.X, image.Rect(0, 0, ct.Width, ct.Height*10))
+
+	ct.window, err = xwindow.Create(ct.X, ct.Parent.Id)
+	utils.FailMeMaybe(err)
+
+	ct.img.XSurfaceSet(ct.window.Id)
+
+	ct.window.Move(ct.Position, 0)
+	ct.window.Resize(ct.Width, ct.Height)
+	ct.window.Map()
 
 	keybind.Initialize(ct.X)
 }
@@ -99,12 +111,6 @@ func (ct *CommandTray) initPopup() {
 }
 
 // API
-func (ct *CommandTray) Connect(win *xwindow.Window, img *xgraphics.Image) {
-	ct.bar_img = img
-	ct.bar_win = win
-	ct.Draw()
-}
-
 func (ct *CommandTray) Bind(key string) {
 	if ct.mod != "" {
 		return
@@ -169,10 +175,13 @@ func (ct *CommandTray) Draw() {
 	if ct.is_focused {
 		ct.img.Text(5, 4, color.White, ct.FontSize, ct.Font, string(ct.input))
 
-		draw.Draw(ct.bar_img, image.Rect(0, 0, ct.Width, ct.Height), ct.img, image.Point{0, 0}, draw.Over)
+		//draw.Draw(ct.bar_img, image.Rect(0, 0, ct.Width, ct.Height), ct.img, image.Point{0, 0}, draw.Over)
 
-		ct.bar_img.XDraw()
-		ct.bar_img.XPaint(ct.bar_win.Id)
+		//ct.bar_img.XDraw()
+		//ct.bar_img.XPaint(ct.bar_win.Id)
+
+		ct.img.XDraw()
+		ct.img.XPaint(ct.window.Id)
 
 		ct.pu_img.For(func(x, y int) xgraphics.BGRA {
 			if y%ct.Height == ct.Height-1 || y == 0 || x == 0 || x == ct.Width-1 {
@@ -225,8 +234,8 @@ func (ct *CommandTray) Draw() {
 		ct.img.Text(5, 4, xgraphics.BGRA{128, 128, 128, 255}, ct.FontSize, ct.Font,
 			"Press "+ct.mod+" to type a command")
 
-		draw.Draw(ct.bar_img, image.Rect(0, 0, ct.Width, ct.Height), ct.img, image.Point{0, 0}, draw.Over)
-
+		ct.img.XDraw()
+		ct.img.XPaint(ct.window.Id)
 	}
 
 }
