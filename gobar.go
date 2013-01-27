@@ -9,6 +9,7 @@ import (
 
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/ewmh"
+	"github.com/BurntSushi/xgbutil/keybind"
 	"github.com/BurntSushi/xgbutil/xevent"
 	"github.com/BurntSushi/xgbutil/xgraphics"
 	"github.com/BurntSushi/xgbutil/xwindow"
@@ -41,7 +42,7 @@ func main() {
 	win, err := xwindow.Create(X, X.RootWin())
 	utils.FailMeMaybe(err)
 
-	win.Resize(1024, cfg.BarSize)
+	win.Resize(cfg.BarWidth, cfg.BarSize)
 
 	// Setup the EWMH Stuff
 
@@ -83,6 +84,8 @@ func main() {
 
 	win.Map()
 
+	keybind.Initialize(X)
+
 	// Draw the background
 
 	bg := xgraphics.BGRA{
@@ -109,14 +112,14 @@ func main() {
 
 	utils.FailMeMaybe(sys.Authenticate())
 
-	// TODO: This will come in handy sometime.
+	// The session bus, too.
 
 	sess, err := dbus.Connect(dbus.SessionBus)
 	utils.FailMeMaybe(err)
 
 	utils.FailMeMaybe(sess.Authenticate())
 
-	// Blash
+	// Blah
 
 	x := xdg.New()
 	x.SetTheme("gnome")
@@ -152,7 +155,7 @@ func main() {
 
 	//ct := commandtray.New(X)
 
-	ct := commandtray.CommandTray{
+	ct := &commandtray.CommandTray{
 		X:        X,
 		Width:    cfg.Command.Width,
 		Height:   cfg.BarSize,
@@ -161,10 +164,6 @@ func main() {
 		Font:     utils.OpenFont(cfg.Command.Font.Name),
 		FontSize: cfg.Command.Font.Size,
 	}
-
-	ct.Init()
-	ct.Bind(cfg.CommandCombo)
-	ct.Draw()
 
 	// Register(NetSource{w: w})
 
@@ -178,6 +177,12 @@ func main() {
 		Xdg: x,
 	})
 
+	// Done, maybe?
+
+	ct.Init()
+	ct.Bind(cfg.CommandCombo)
+	ct.Draw()
+
 	// Status Bar
 
 	sb := &statbar.StatusBar{
@@ -186,7 +191,7 @@ func main() {
 		Position: cfg.StatusBar.Position,
 		Height:   cfg.BarSize,
 		Parent:   win,
-	} //statbar.New(X)
+	}
 
 	sb.Init()
 
@@ -217,83 +222,7 @@ func main() {
 
 	clck.Init()
 
+	// Engague!
+
 	xevent.Main(X)
 }
-
-// func drawClock(X *xgbutil.XUtil, bar_img *xgraphics.Image, win *xwindow.Window, cfg *Config) {
-// 	img := xgraphics.New(X, image.Rect(0, 0, 200, cfg.BarSize))
-
-// 	fnt := utils.OpenFont(cfg.ClockFont.Name)
-
-// 	for {
-// 		clock_bg := xgraphics.BGRA{
-// 			R: 48,
-// 			G: 48,
-// 			B: 48,
-// 			A: 255,
-// 		}
-
-// 		img.For(func(x, y int) xgraphics.BGRA {
-// 			return clock_bg
-// 		})
-
-// 		now := time.Now()
-// 		str := now.Format("2006-01-02 15:04:05")
-
-// 		_, h := xgraphics.TextMaxExtents(fnt, cfg.ClockFont.Size, str)
-
-// 		img.Text(25, (cfg.BarSize/2)-(h/2), color.White, cfg.ClockFont.Size, fnt, str)
-
-// 		draw.Draw(bar_img, image.Rect(412, 0, 612, cfg.BarSize), img, image.Point{0, 0}, draw.Over)
-
-// 		//img.XPaint(win.Id)
-
-// 		bar_img.XDraw()
-// 		bar_img.XPaint(win.Id)
-
-// 		time.Sleep(1 * time.Second)
-// 	}
-// }
-
-// func drawWorkspace(X *xgbutil.XUtil, bar_img graphics.Image, win *xwindow.Window, cfg *Config) {
-// 	img := xgraphics.New(X, image.Rect(0, 0, 75, cfg.BarSize))
-
-// 	workspace_bg := xgraphics.BGRA{
-// 		R: 32,
-// 		G: 32,
-// 		B: 128,
-// 		A: 255,
-// 	}
-
-// 	for {
-// 		time.Sleep(500 * time.Millisecond)
-
-// 		img.For(func(x, y int) xgraphics.BGRA {
-// 			return workspace_bg
-// 		})
-
-// 		dsk, err := ewmh.CurrentDesktopGet(X)
-
-// 		if err != nil {
-// 			continue
-// 		}
-
-// 		desks, err := ewmh.DesktopNamesGet(X)
-// 		if err != nil {
-// 			continue
-// 		}
-
-// 		if int(dsk) >= len(desks) {
-// 			continue
-// 		}
-
-// 		str := desks[dsk]
-
-// 		img.Text(5, cfg.BarSize/2-6, color.White, workspace_font_size, fnt, str)
-
-// 		draw.Draw(bar_img, image.Rect(949, 0, 1024, 24), img, image.Point{0, 0}, draw.Over)
-
-// 		bar_img.XDraw()
-// 		bar_img.XPaint(win.Id)
-// 	}
-// }

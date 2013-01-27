@@ -71,13 +71,11 @@ func (ct *CommandTray) Init() {
 	ct.window, err = xwindow.Create(ct.X, ct.Parent.Id)
 	utils.FailMeMaybe(err)
 
-	ct.img.XSurfaceSet(ct.window.Id)
+	utils.FailMeMaybe(ct.img.XSurfaceSet(ct.window.Id))
 
 	ct.window.Move(ct.Position, 0)
 	ct.window.Resize(ct.Width, ct.Height)
 	ct.window.Map()
-
-	keybind.Initialize(ct.X)
 }
 
 func (ct *CommandTray) initPopup() {
@@ -102,10 +100,9 @@ func (ct *CommandTray) initPopup() {
 	utils.FailMeMaybe(ct.popup.Listen(xproto.EventMaskKeyPress | xproto.EventMaskStructureNotify))
 
 	ct.popup.Resize(ct.Width, ct.Height*10)
-	ct.popup.Move(0, ct.Height)
+	ct.popup.Move(ct.Position, ct.Height)
 
 	ct.pu_img.XSurfaceSet(ct.popup.Id)
-
 	ct.pu_img.XDraw()
 	ct.pu_img.XPaint(ct.popup.Id)
 }
@@ -117,9 +114,9 @@ func (ct *CommandTray) Bind(key string) {
 	}
 	ct.mod = key
 
-	keybind.KeyPressFun(func(_ *xgbutil.XUtil, _ xevent.KeyPressEvent) {
+	utils.FailMeMaybe(keybind.KeyPressFun(func(_ *xgbutil.XUtil, _ xevent.KeyPressEvent) {
 		ct.Focus()
-	}).Connect(ct.X, ct.X.RootWin(), ct.mod, true)
+	}).Connect(ct.X, ct.X.RootWin(), ct.mod, true))
 }
 
 func (ct *CommandTray) Focus() {
@@ -142,11 +139,11 @@ func (ct *CommandTray) Focus() {
 	ct.popup.Stack(xproto.StackModeAbove)
 	ct.popup.Map()
 
+	ct.keyPress().Connect(ct.X, ct.popup.Id)
+
 	ct.Draw()
 
 	ct.getCommands()
-
-	ct.keyPress().Connect(ct.X, ct.popup.Id)
 
 	ct.Draw()
 }
