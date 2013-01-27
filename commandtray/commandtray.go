@@ -172,11 +172,6 @@ func (ct *CommandTray) Draw() {
 	if ct.is_focused {
 		ct.img.Text(5, 4, color.White, ct.FontSize, ct.Font, string(ct.input))
 
-		//draw.Draw(ct.bar_img, image.Rect(0, 0, ct.Width, ct.Height), ct.img, image.Point{0, 0}, draw.Over)
-
-		//ct.bar_img.XDraw()
-		//ct.bar_img.XPaint(ct.bar_win.Id)
-
 		ct.img.XDraw()
 		ct.img.XPaint(ct.window.Id)
 

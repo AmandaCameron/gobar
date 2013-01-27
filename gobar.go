@@ -7,6 +7,7 @@ import (
 	"os"
 	// "time"
 
+	basedir "github.com/BurntSushi/xdg"
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/ewmh"
 	"github.com/BurntSushi/xgbutil/keybind"
@@ -28,11 +29,19 @@ import (
 
 func main() {
 
-	cfg := loadConfig(os.Getenv("HOME") + "/.config/gobar/config.wini")
+	paths := basedir.Paths{
+		XDGSuffix:    "gobar",
+		GoImportPath: "github.com/AmandaCameron/gobar/data",
+	}
+
+	file, err := paths.ConfigFile("config.wini")
+	utils.FailMeMaybe(err)
+
+	cfg := loadConfig(file) //os.Getenv("HOME") + "/.config/gobar/config.wini")
 
 	// Load Images.
 
-	images.Init()
+	images.Init(paths)
 
 	// Setup the X Connection
 
@@ -95,7 +104,7 @@ func main() {
 		A: 255,
 	}
 
-	img := xgraphics.New(X, image.Rect(0, 0, 1024, cfg.BarSize))
+	img := xgraphics.New(X, image.Rect(0, 0, cfg.BarWidth, cfg.BarSize))
 
 	img.For(func(x, y int) xgraphics.BGRA {
 		return bg

@@ -3,10 +3,11 @@ package images
 import (
 	"image"
 	"image/png"
+	"os"
+
+	"github.com/BurntSushi/xdg"
 
 	"github.com/AmandaCameron/gobar/utils"
-
-	"os"
 )
 
 var (
@@ -27,8 +28,11 @@ var (
 	Battery_1 image.Image
 )
 
-func openImage(fileName string) image.Image {
-	f, err := os.Open("/home/amanda/.local/share/icons/gobar/" + fileName)
+func openImage(paths xdg.Paths, fileName string) image.Image {
+	fileName, err := paths.DataFile("images/" + fileName)
+	utils.FailMeMaybe(err)
+
+	f, err := os.Open(fileName) //"/home/amanda/.local/share/icons/gobar/" + fileName)
 
 	utils.FailMeMaybe(err)
 
@@ -41,23 +45,23 @@ func openImage(fileName string) image.Image {
 	return img
 }
 
-func Init() {
+func Init(paths xdg.Paths) {
 	// WiFi
-	WifiEnc = openImage("wifi-enc.png")
-	WifiDC = openImage("wifi-dc.png")
-	Wifi_1 = openImage("wifi-1.png")
-	Wifi_2 = openImage("wifi-2.png")
-	Wifi_3 = openImage("wifi-3.png")
-	Wifi_4 = openImage("wifi-4.png")
+	WifiEnc = openImage(paths, "wifi-enc.png")
+	WifiDC = openImage(paths, "wifi-dc.png")
+	Wifi_1 = openImage(paths, "wifi-1.png")
+	Wifi_2 = openImage(paths, "wifi-2.png")
+	Wifi_3 = openImage(paths, "wifi-3.png")
+	Wifi_4 = openImage(paths, "wifi-4.png")
 
 	// Status Bar
-	Charging = openImage("ac.png")
+	Charging = openImage(paths, "ac.png")
 
-	Battery_5 = openImage("battery-5.png")
-	Battery_4 = openImage("battery-4.png")
-	Battery_3 = openImage("battery-3.png")
-	Battery_2 = openImage("battery-2.png")
-	Battery_1 = openImage("battery-1.png")
+	Battery_5 = openImage(paths, "battery-5.png")
+	Battery_4 = openImage(paths, "battery-4.png")
+	Battery_3 = openImage(paths, "battery-3.png")
+	Battery_2 = openImage(paths, "battery-2.png")
+	Battery_1 = openImage(paths, "battery-1.png")
 }
 
 func WifiStrengthImage(strength byte) image.Image {
