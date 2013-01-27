@@ -42,7 +42,7 @@ func (c *Clock) Init() {
 
 	c.Draw()
 
-	defer c.tickTock()
+	go c.tickTock()
 }
 
 func (c *Clock) Draw() {
