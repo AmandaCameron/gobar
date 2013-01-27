@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	CommandCombo string
+	CommandAccel string
 	BarSize      int
 	BarWidth     int
 	Position     string
+	ClockFormat  string
 	Clock        Section
 	StatusBar    Section
 	Command      Section
@@ -33,50 +34,21 @@ func loadConfig(fileName string) *Config {
 
 	cfg := &Config{}
 
-	//loadFont(dat, "Clock", &cfg.ClockFont)
-	//loadFont(dat, "CommandTray", &cfg.CommandFont)
-
 	// Main thing.
 
-	tmp, err := dat.GetKey("Main", "Size").Ints()
-	utils.FailMeMaybe(err)
-
-	cfg.BarSize = tmp[0]
-
-	tmp, err = dat.GetKey("Main", "Width").Ints()
-	utils.FailMeMaybe(err)
-	cfg.BarWidth = tmp[0]
-
-	key := dat.GetKey("Main", "Position")
-	if key == nil {
-		utils.Fail("Must have a [Main] Position entry.")
-	}
-
-	cfg.Position = key.Strings()[0]
+	loadInt(dat, "Main", "Size", &cfg.BarSize)
+	loadInt(dat, "Main", "Width", &cfg.BarWidth)
+	loadString(dat, "Main", "Position", "", &cfg.Position)
 
 	// Clock.
 
-	// tmp, err = dat.GetKey("Clock", "Width").Ints()
-	// utils.FailMeMaybe(err)
-
-	// cfg.ClockWidth = tmp[0]
-
-	// tmp, err = dat.GetKey("Clock", "Position").Ints()
-	// utils.FailMeMaybe(err)
-
-	// cfg.ClockPos = tmp[0]
-
 	loadSection(dat, "Clock", true, &cfg.Clock)
+	loadString(dat, "Clock", "Format", "2006-01-02 15:04:05", &cfg.ClockFormat)
 
 	// Command Tray
 
 	loadSection(dat, "CommandTray", true, &cfg.Command)
-
-	key = dat.GetKey("CommandTray", "Accel")
-	if key == nil {
-		utils.Fail("Must have a [CommandTray] Accel entry.")
-	}
-	cfg.CommandCombo = key.Strings()[0]
+	loadString(dat, "CommandTray", "Accel", "", &cfg.CommandAccel)
 
 	// Status Bar
 
@@ -88,25 +60,8 @@ func loadConfig(fileName string) *Config {
 func loadSection(dat *wini.Data, name string, fontMeMaybe bool, target *Section) {
 	sec := Section{}
 
-	key := dat.GetKey(name, "Width")
-	if key == nil {
-		utils.Fail("Missing " + name + " entry -- Width")
-	}
-
-	tmp, err := key.Ints()
-	utils.FailMeMaybe(err)
-
-	sec.Width = tmp[0]
-
-	key = dat.GetKey(name, "Position")
-	if key == nil {
-		utils.Fail("Missing " + name + " entry -- Position")
-	}
-
-	tmp, err = key.Ints()
-	utils.FailMeMaybe(err)
-
-	sec.Position = tmp[0]
+	loadInt(dat, name, "Width", &sec.Width)
+	loadInt(dat, name, "Position", &sec.Position)
 
 	if fontMeMaybe {
 		loadFont(dat, name, &sec.Font)
@@ -116,36 +71,67 @@ func loadSection(dat *wini.Data, name string, fontMeMaybe bool, target *Section)
 }
 
 func loadFont(dat *wini.Data, name string, target *FontInfo) {
-	key := dat.GetKey("Fonts/"+name, "Name")
-	//utils.FailMeMaybe(err)
-	if key == nil {
-		utils.Fail("Fonts/" + name + " is missing field: Name")
+	font := FontInfo{}
+
+	loadString(dat, "Fonts/"+name, "Name", "", &font.Name)
+	loadFloat(dat, "Fonts/"+name, "Size", &font.Size)
+
+	*target = font
+}
+
+func loadString(dat *wini.Data, name, key, def string, target *string) {
+	k := dat.GetKey(name, key)
+	if k == nil {
+		if def == "" {
+			utils.Fail("Missing key " + key + " in section " + name)
+		} else {
+			*target = def
+			return
+		}
 	}
 
-	tmp3 := key.Strings()
-	if len(tmp3) == 0 {
-		utils.Fail("Fonts/" + name + " is missing field: Name")
+	tmp := k.Strings()
+
+	if len(tmp) > 0 {
+		*target = tmp[0]
+	} else {
+		if def == "" {
+			utils.Fail("Missing key " + key + " in section " + name)
+		} else {
+			*target = def
+			return
+		}
+	}
+}
+
+func loadInt(dat *wini.Data, name, key string, target *int) {
+	k := dat.GetKey(name, key)
+	if k == nil {
+		utils.Fail("Missing key " + key + " in section " + name)
 	}
 
-	fntName := tmp3[0]
-
-	key = dat.GetKey("Fonts/"+name, "Size")
-	//utils.FailMeMaybe(err)
-
-	if key == nil {
-		utils.Fail("Fonts/" + name + " is missing field: Size")
-	}
-
-	tmp2, err := key.Floats()
+	tmp, err := k.Ints()
 	utils.FailMeMaybe(err)
 
-	if len(tmp2) == 0 {
-		utils.Fail("Fonts/" + name + " is missing field: Size")
+	if len(tmp) > 0 {
+		*target = tmp[0]
+	} else {
+		utils.Fail("Missing key " + key + " in section " + name)
+	}
+}
+
+func loadFloat(dat *wini.Data, name, key string, target *float64) {
+	k := dat.GetKey(name, key)
+	if k == nil {
+		utils.Fail("Missing key " + key + " in section " + name)
 	}
 
-	size := tmp2[0]
+	tmp, err := k.Floats()
+	utils.FailMeMaybe(err)
 
-	*target = FontInfo{
-		fntName, size,
+	if len(tmp) > 0 {
+		*target = tmp[0]
+	} else {
+		utils.Fail("Missing key " + key + " in section " + name)
 	}
 }

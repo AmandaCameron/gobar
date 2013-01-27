@@ -24,6 +24,9 @@ Position := Top
 [Clock]
 Width := 200
 Position := {{.ClockPos}}
+# Additional Keys:
+# See http://golang.org/pkg/time/#pkg-constants for more examples.
+# Format := "Monday, Jan 02, 2006"
 
 [CommandTray]
 Width := {{.CommandWidth}}

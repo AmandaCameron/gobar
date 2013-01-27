@@ -21,6 +21,7 @@ type Clock struct {
 	Position   int
 	Font       *truetype.Font
 	FontSize   float64
+	Format     string
 	X          *xgbutil.XUtil
 	Parent     *xwindow.Window
 
@@ -50,13 +51,13 @@ func (c *Clock) Draw() {
 		return c.Background
 	})
 
-	now := time.Now().Format("2006-01-02 15:04:05")
+	now := time.Now().Format(c.Format)
 
-	w, h, _ := c.img.Text(0, c.Height*2, c.Foreground, c.FontSize, c.Font, now)
+	w, h := xgraphics.Extents(c.Font, c.FontSize, now)
 
 	//println("OH MYYYY: ", w, h)
 
-	c.img.Text((c.Width/2)-(w/2), h-(c.Height*2)-int(c.FontSize/2), c.Foreground, c.FontSize, c.Font, now)
+	c.img.Text((c.Width/2)-(w/2), (c.Height/2)-(h/2), c.Foreground, c.FontSize, c.Font, now)
 
 	c.img.XDraw()
 	c.img.XPaint(c.window.Id)

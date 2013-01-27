@@ -189,7 +189,7 @@ func main() {
 	// Done, maybe?
 
 	ct.Init()
-	ct.Bind(cfg.CommandCombo)
+	ct.Bind(cfg.CommandAccel)
 	ct.Draw()
 
 	// Status Bar
@@ -223,6 +223,7 @@ func main() {
 		Width:      cfg.Clock.Width,
 		Height:     cfg.BarSize,
 		Parent:     win,
+		Format:     cfg.ClockFormat,
 		Background: xgraphics.BGRA{R: 48, G: 48, B: 48, A: 255},
 		Foreground: xgraphics.BGRA{R: 255, G: 255, B: 255, A: 255},
 		Font:       utils.OpenFont(cfg.Clock.Font.Name),
