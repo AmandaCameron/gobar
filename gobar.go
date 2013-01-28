@@ -25,6 +25,7 @@ import (
 	"github.com/AmandaCameron/gobar/utils/dbus/nm"
 	"github.com/AmandaCameron/gobar/utils/dbus/upower"
 	"github.com/AmandaCameron/gobar/utils/xdg"
+	"github.com/AmandaCameron/gobar/utils/xsettings"
 )
 
 func main() {
@@ -89,11 +90,17 @@ func main() {
 	// Put us everywhere.
 	utils.FailMeMaybe(ewmh.WmDesktopSet(X, win.Id, 0xFFFFFFFF))
 
-	// Show the window?
-
 	win.Map()
 
 	keybind.Initialize(X)
+
+	// Get the DE settings, if we can.
+
+	xs, err := xsettings.New(X)
+	if err != nil {
+		// Maybe this should be an error, maybe not?
+		xs = nil
+	}
 
 	// Draw the background
 
@@ -131,7 +138,15 @@ func main() {
 	// Blah
 
 	x := xdg.New()
-	x.SetTheme("gnome")
+
+	// TODO: How should this fail? I imagine defaulting to gnome is the wrong thing to do,
+	// but I'm not really sure what it should do.
+	if xs != nil {
+		theme, err := xs.GetString("Net/IconThemeName")
+		if err == nil {
+			x.SetTheme(theme)
+		}
+	}
 
 	up := upower.New(sys)
 	cli := nm.New(sys)
