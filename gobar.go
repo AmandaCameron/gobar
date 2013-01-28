@@ -191,15 +191,22 @@ func main() {
 
 	// Register(NetSource{w: w})
 
-	commandtray.Register(commandtray.NewShellSource(sess, x))
-
-	commandtray.Register(&commandtray.AppMenuSource{
-		Conn: sess,
-	})
-
 	commandtray.Register(commandtray.AppSource{
 		Xdg: x,
 	})
+
+	if sess != nil {
+		commandtray.Register(commandtray.GnomeSessionSource{
+			Obj: sess.Object("org.gnome.SessionManager", "/org/gnome/SessionManager"),
+			Xdg: x,
+		})
+
+		commandtray.Register(commandtray.NewShellSource(sess, x))
+
+		commandtray.Register(&commandtray.AppMenuSource{
+			Conn: sess,
+		})
+	}
 
 	// Done, maybe?
 
