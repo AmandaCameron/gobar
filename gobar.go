@@ -22,10 +22,11 @@ import (
 	"github.com/AmandaCameron/gobar/statbar"
 
 	"github.com/AmandaCameron/gobar/utils"
-	"github.com/AmandaCameron/gobar/utils/dbus/nm"
 	"github.com/AmandaCameron/gobar/utils/dbus/upower"
 	"github.com/AmandaCameron/gobar/utils/xdg"
 	"github.com/AmandaCameron/gobar/utils/xsettings"
+
+	"github.com/AmandaCameron/go.networkmanager"
 )
 
 func main() {

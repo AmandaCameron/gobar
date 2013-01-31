@@ -6,7 +6,7 @@ import (
 
 	"github.com/AmandaCameron/gobar/images"
 
-	"github.com/AmandaCameron/gobar/utils/dbus/nm"
+	"github.com/AmandaCameron/go.networkmanager"
 )
 
 type SbNmWifi struct {
