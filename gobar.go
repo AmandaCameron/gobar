@@ -149,36 +149,32 @@ func main() {
 		}
 	}
 
-	up := upower.New(sys)
-	cli := nm.New(sys)
-
-	devs, err := cli.GetDevices()
-	utils.FailMeMaybe(err)
-
 	var dev *nm.Device
 	var batt *upower.Device
 
-	for _, d := range devs {
-		if d.Type() == nm.Wireless {
-			dev = d
+	up := upower.New(sys)
+	cli := nm.New(sys)
 
-			break
+	if devs, err := cli.GetDevices(); err == nil {
+		for _, d := range devs {
+			if d.Type() == nm.Wireless {
+				dev = d
+
+				break
+			}
 		}
 	}
 
-	pdevs, err := up.GetDevices()
-	utils.FailMeMaybe(err)
-
-	for _, d := range pdevs {
-		if d.Type() == upower.Battery {
-			batt = d
-			break
+	if pdevs, err := up.GetDevices(); err == nil {
+		for _, d := range pdevs {
+			if d.Type() == upower.Battery {
+				batt = d
+				break
+			}
 		}
 	}
 
 	// Command Tray
-
-	//ct := commandtray.New(X)
 
 	ct := &commandtray.CommandTray{
 		X:        X,
@@ -189,8 +185,6 @@ func main() {
 		Font:     utils.OpenFont(cfg.Command.Font.Name),
 		FontSize: cfg.Command.Font.Size,
 	}
-
-	// Register(NetSource{w: w})
 
 	commandtray.Register(commandtray.AppSource{
 		Xdg: x,
@@ -255,7 +249,7 @@ func main() {
 
 	clck.Init()
 
-	// Engague!
+	// Engage!
 
 	xevent.Main(X)
 }
