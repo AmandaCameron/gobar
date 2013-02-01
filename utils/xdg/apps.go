@@ -99,7 +99,14 @@ func (xdg *XDG) LoadApplication(path string) (*Application, error) {
 }
 
 func (app *Application) Run() error {
-	tmp := strings.Split(app.Exec, " ")
+	str := strings.Replace(app.Exec, "%U", "", -1)
+	str = strings.Replace(str, "%f", "", -1)
+	str = strings.Replace(str, "%u", "", -1)
+	str = strings.Replace(str, "%i", app.Icon, -1)
+	str = strings.Replace(str, "%c", app.Name, -1)
+	str = strings.Replace(str, "%k", "", -1)
+
+	tmp := strings.Split(str, " ")
 
 	the_cmd := exec.Command("nohup", tmp...)
 
