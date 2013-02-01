@@ -99,16 +99,29 @@ func (xdg *XDG) LoadApplication(path string) (*Application, error) {
 }
 
 func (app *Application) Run() error {
-	str := strings.Replace(app.Exec, "%U", "", -1)
-	str = strings.Replace(str, "%f", "", -1)
-	str = strings.Replace(str, "%u", "", -1)
+	/*
+		str := strings.Replace(app.Exec, " %U ", " ", -1)
+		str = strings.Replace(str, " %f ", " ", -1)
+		str = strings.Replace(str, " %u ", " ", -1)
+		str = strings.Replace(str, " %F ", " ", -1)*/
+
+	str := app.Exec
 	str = strings.Replace(str, "%i", app.Icon, -1)
 	str = strings.Replace(str, "%c", app.Name, -1)
-	str = strings.Replace(str, "%k", "", -1)
+	str = strings.Replace(str, "%k ", "", -1)
 
 	tmp := strings.Split(str, " ")
+	var args []string
 
-	the_cmd := exec.Command("nohup", tmp...)
+	for _, arg := range tmp {
+		if arg == "%U" || arg == "%F" || arg == "%u" || arg == "%f" {
+			continue
+		}
+
+		args = append(args, arg)
+	}
+
+	the_cmd := exec.Command("nohup", args...)
 
 	return the_cmd.Run()
 }
