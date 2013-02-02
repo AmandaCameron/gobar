@@ -1,12 +1,15 @@
 package xdg
 
 import (
+	"fmt"
 	"image"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
-	//"time"
+	"time"
+
+	"github.com/BurntSushi/xgb/xproto"
 
 	"code.google.com/p/goconf/conf"
 )
@@ -98,7 +101,7 @@ func (xdg *XDG) LoadApplication(path string) (*Application, error) {
 	return app, nil
 }
 
-func (app *Application) Run() error {
+func (app *Application) Run(launchTime xproto.Timestamp) string {
 	/*
 		str := strings.Replace(app.Exec, " %U ", " ", -1)
 		str = strings.Replace(str, " %f ", " ", -1)
@@ -121,9 +124,16 @@ func (app *Application) Run() error {
 		args = append(args, arg)
 	}
 
+	deskId := fmt.Sprintf("%d|%s_TIME%d",
+		os.Getpid(), time.Now().Format("2006-01-02T15:04:05"), launchTime)
+
 	the_cmd := exec.Command("nohup", args...)
 
-	return the_cmd.Run()
+	the_cmd.Env = append(os.Environ(), fmt.Sprint("DESKTOP_STARTUP_ID=", deskId))
+
+	go the_cmd.Run()
+
+	return deskId
 }
 
 func (app *Application) FindIcon(size int) image.Image {

@@ -1,19 +1,28 @@
 package commandtray
 
 import (
-	"fmt"
 	"image"
 	"strings"
+
+	"github.com/BurntSushi/xgbutil"
 
 	"github.com/AmandaCameron/gobar/utils/xdg"
 )
 
 type AppSource struct {
-	Xdg *xdg.XDG
+	X          *xgbutil.XUtil
+	Xdg        *xdg.XDG
+	AppTracker AppTracker
 }
 
 type AppCommand struct {
-	app *xdg.Application
+	X          *xgbutil.XUtil
+	app        *xdg.Application
+	AppTracker AppTracker
+}
+
+type AppTracker interface {
+	NewApp(*xdg.Application, string)
 }
 
 func (as AppSource) GetMatches(inp string, ct *CommandTray) []Command {
@@ -29,7 +38,7 @@ func (as AppSource) GetMatches(inp string, ct *CommandTray) []Command {
 		}
 
 		if strings.Contains(strings.ToLower(app.Name), inp) {
-			cmds = append(cmds, AppCommand{app: app})
+			cmds = append(cmds, AppCommand{app: app, X: as.X, AppTracker: as.AppTracker})
 		}
 	}
 
@@ -54,9 +63,9 @@ func (ac AppCommand) GetIcon() image.Image {
 }
 
 func (ac AppCommand) Run() {
-	err := ac.app.Run()
+	deskId := ac.app.Run(ac.X.TimeGet())
 
-	if err != nil {
-		fmt.Printf("Error Launching App: ", err.Error())
+	if ac.AppTracker != nil {
+		ac.AppTracker.NewApp(ac.app, deskId)
 	}
 }

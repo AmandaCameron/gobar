@@ -174,6 +174,35 @@ func main() {
 		}
 	}
 
+	// Clock
+
+	clck := &Clock{
+		X:          X,
+		Position:   cfg.Clock.Position,
+		Width:      cfg.Clock.Width,
+		Height:     cfg.BarSize,
+		Parent:     win,
+		Format:     cfg.ClockFormat,
+		Background: xgraphics.BGRA{R: 48, G: 48, B: 48, A: 255},
+		Foreground: xgraphics.BGRA{R: 255, G: 255, B: 255, A: 255},
+		Font:       utils.OpenFont(cfg.Clock.Font.Name),
+		FontSize:   cfg.Clock.Font.Size,
+	}
+
+	clck.Init()
+
+	// App Launch Tracker
+
+	tracker := &Tracker{
+		X:          X,
+		Position:   cfg.Tracker.Position,
+		Size:       cfg.BarSize,
+		Background: bg,
+		Parent:     win,
+	}
+
+	tracker.Init()
+
 	// Command Tray
 
 	ct := &commandtray.CommandTray{
@@ -187,7 +216,9 @@ func main() {
 	}
 
 	commandtray.Register(commandtray.AppSource{
-		Xdg: x,
+		Xdg:        x,
+		X:          X,
+		AppTracker: tracker,
 	})
 
 	if sess != nil {
@@ -233,23 +264,6 @@ func main() {
 	sb.Draw()
 
 	// My My this anikin guy...
-
-	clck := &Clock{
-		X:          X,
-		Position:   cfg.Clock.Position,
-		Width:      cfg.Clock.Width,
-		Height:     cfg.BarSize,
-		Parent:     win,
-		Format:     cfg.ClockFormat,
-		Background: xgraphics.BGRA{R: 48, G: 48, B: 48, A: 255},
-		Foreground: xgraphics.BGRA{R: 255, G: 255, B: 255, A: 255},
-		Font:       utils.OpenFont(cfg.Clock.Font.Name),
-		FontSize:   cfg.Clock.Font.Size,
-	}
-
-	clck.Init()
-
-	// Engage!
 
 	xevent.Main(X)
 }

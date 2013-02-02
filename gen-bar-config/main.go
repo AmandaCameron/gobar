@@ -33,6 +33,10 @@ Width := {{.CommandWidth}}
 Position := 0
 Accel := Mod4-b
 
+[App Tracker]
+Width := 0
+Position := {{.CommandWidth}}
+
 [StatusBar]
 Width := 200
 Position := {{.StatusPos}}
@@ -68,7 +72,7 @@ func main() {
 	cfg.Width = heads[0].Width()
 
 	cfg.ClockPos = (cfg.Width / 2) - 100
-	cfg.CommandWidth = (cfg.Width / 2) - 100
+	cfg.CommandWidth = (cfg.Width / 2) - 124
 	cfg.StatusPos = (cfg.Width / 2) + 100
 
 	// Look for ze fonts!	

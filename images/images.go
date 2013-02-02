@@ -26,6 +26,12 @@ var (
 	Battery_3 image.Image
 	Battery_2 image.Image
 	Battery_1 image.Image
+
+	// App Spinner.
+	Tracker_1 image.Image
+	Tracker_2 image.Image
+	Tracker_3 image.Image
+	Tracker_4 image.Image
 )
 
 func openImage(paths xdg.Paths, fileName string) image.Image {
@@ -62,6 +68,13 @@ func Init(paths xdg.Paths) {
 	Battery_3 = openImage(paths, "battery-3.png")
 	Battery_2 = openImage(paths, "battery-2.png")
 	Battery_1 = openImage(paths, "battery-1.png")
+
+	// App Spinner
+
+	Tracker_4 = openImage(paths, "spinner-4.png")
+	Tracker_3 = openImage(paths, "spinner-3.png")
+	Tracker_2 = openImage(paths, "spinner-2.png")
+	Tracker_1 = openImage(paths, "spinner-1.png")
 }
 
 func WifiStrengthImage(strength byte) image.Image {

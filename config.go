@@ -15,6 +15,7 @@ type Config struct {
 	Clock        Section
 	StatusBar    Section
 	Command      Section
+	Tracker      Section
 }
 
 type Section struct {
@@ -44,6 +45,10 @@ func loadConfig(fileName string) *Config {
 
 	loadSection(dat, "Clock", true, &cfg.Clock)
 	loadString(dat, "Clock", "Format", "2006-01-02 15:04:05", &cfg.ClockFormat)
+
+	// Tracker
+
+	loadSection(dat, "App Tracker", false, &cfg.Tracker)
 
 	// Command Tray
 
