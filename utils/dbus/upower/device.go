@@ -50,9 +50,20 @@ func (up *UPower) newDevice(path dbus.ObjectPath) *Device {
 }
 
 func (dev *Device) Connect(handler func(*Device)) {
-	dev.WatchSignal(UP_DEV_IFACE, "Changed", func(_ *dbus.Message) {
-		go handler(dev)
-	})
+	watcher, err := dev.WatchSignal(UP_DEV_IFACE, "Changed")
+
+	if err != nil {
+		return
+	}
+
+	go func() {
+		for {
+			select {
+			case <-watcher.C:
+				handler(dev)
+			}
+		}
+	}()
 }
 
 func (dev *Device) Type() DeviceType {

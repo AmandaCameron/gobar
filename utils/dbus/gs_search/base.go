@@ -43,7 +43,7 @@ func (gs *GsSearch) GetResults(terms []string) ([]string, error) {
 		return nil, err
 	}
 
-	if err = msg.GetArgs(&gs.prev_results); err != nil {
+	if err = msg.Args(&gs.prev_results); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func (gs *GsSearch) GetResultsMeta() ([]map[string]dbus.Variant, error) {
 
 	var ret []map[string]dbus.Variant
 
-	if err = msg.GetArgs(&ret); err != nil {
+	if err = msg.Args(&ret); err != nil {
 		return nil, err
 	}
 

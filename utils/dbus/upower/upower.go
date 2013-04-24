@@ -37,7 +37,7 @@ func (up *UPower) GetDevices() ([]*Device, error) {
 
 	var tmp []dbus.ObjectPath
 
-	if err = msg.GetArgs(&tmp); err != nil {
+	if err = msg.Args(&tmp); err != nil {
 		return nil, err
 	}
 

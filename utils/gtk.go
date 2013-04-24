@@ -22,7 +22,7 @@ func (gm *GtkMenu) Start(menus []uint32) (ret []GtkMenuOptions, err error) {
 		return
 	}
 
-	if err = msg.GetArgs(&ret); err != nil {
+	if err = msg.Args(&ret); err != nil {
 		return
 	}
 
@@ -68,7 +68,7 @@ func (ga *GtkActions) List() (ret []string, err error) {
 		return
 	}
 
-	err = msg.GetArgs(&ret)
+	err = msg.Args(&ret)
 
 	return
 }
@@ -79,7 +79,7 @@ func (ga *GtkActions) Describe(act string) (desc ActionDesc, err error) {
 		return
 	}
 
-	err = msg.GetArgs(&desc)
+	err = msg.Args(&desc)
 
 	return
 }
