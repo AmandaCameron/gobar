@@ -2,10 +2,10 @@ package main
 
 import (
 	"image"
-	// "image/color"
-	// "image/draw"
 	"os"
-	// "time"
+	"os/signal"
+	"syscall"
+	"time"
 
 	basedir "github.com/BurntSushi/xdg"
 	"github.com/BurntSushi/xgbutil"
@@ -30,6 +30,11 @@ import (
 )
 
 func main() {
+	// Signal Handling.
+
+	sigChan := make(chan os.Signal)
+
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
 
 	paths := basedir.Paths{
 		XDGSuffix:    "gobar",
@@ -127,14 +132,10 @@ func main() {
 	sys, err := dbus.Connect(dbus.SystemBus)
 	utils.FailMeMaybe(err)
 
-	utils.FailMeMaybe(sys.Authenticate())
-
 	// The session bus, too.
 
 	sess, err := dbus.Connect(dbus.SessionBus)
 	utils.FailMeMaybe(err)
-
-	utils.FailMeMaybe(sess.Authenticate())
 
 	// Blah
 
@@ -264,6 +265,19 @@ func main() {
 	sb.Draw()
 
 	// My My this anikin guy...
+
+	go func() {
+		for {
+			select {
+			case <-sigChan:
+				sb.Teardown()
+
+				time.Sleep(1 * time.Second)
+				// Anybody else?
+				xevent.Quit(X)
+			}
+		}
+	}()
 
 	xevent.Main(X)
 }

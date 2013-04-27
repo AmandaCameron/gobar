@@ -36,3 +36,7 @@ func (icon *SbNmWifi) Icon() image.Image {
 
 	return images.WifiStrengthImage(str)
 }
+
+func (icon *SbNmWifi) Size() int {
+	return 16
+}

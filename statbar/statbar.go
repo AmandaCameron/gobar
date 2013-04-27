@@ -10,6 +10,7 @@ import (
 	"github.com/BurntSushi/xgbutil/xwindow"
 
 	"github.com/AmandaCameron/gobar/utils"
+	"github.com/AmandaCameron/gobar/utils/system-tray"
 
 	// "dbus/upower"
 	// "dbus/wicd"
@@ -29,6 +30,10 @@ type StatusBar struct {
 	img    *xgraphics.Image
 	window *xwindow.Window
 
+	tray_offset int
+	tray        *systemtray.SystemTray
+	tray_icons  []systemtray.Icon
+
 	items []StatusItem
 
 	//up *upower.UPower
@@ -38,7 +43,10 @@ type StatusBar struct {
 type StatusItem interface {
 	Icon() image.Image
 	Attach(sb *StatusBar)
+	Size() int
 }
+
+// Start Up / Tear Down
 
 func (sb *StatusBar) Init() {
 	sb.img = xgraphics.New(sb.X, image.Rect(0, 0, sb.Width, sb.Height))
@@ -53,12 +61,25 @@ func (sb *StatusBar) Init() {
 
 	sb.img.XSurfaceSet(sb.window.Id)
 
+	utils.FailMeMaybe(sb.initTray())
+
 	sb.Draw()
 }
+
+func (sb *StatusBar) Teardown() {
+	utils.FailMeMaybe(sb.teardownTray())
+
+	sb.window.Destroy()
+	sb.img.Destroy()
+}
+
+// API
 
 func (sb *StatusBar) Add(icon StatusItem) {
 	sb.items = append(sb.items, icon)
 	icon.Attach(sb)
+
+	sb.tray_offset += icon.Size() + 2
 }
 
 func (sb *StatusBar) Draw() {

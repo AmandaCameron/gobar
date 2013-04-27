@@ -57,3 +57,7 @@ func (icon *SbPower) Icon() image.Image {
 
 	return img
 }
+
+func (icon *SbPower) Size() int {
+	return 34
+}
