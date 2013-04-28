@@ -66,7 +66,10 @@ func NewSocket(X *xgbutil.XUtil, wid xproto.Window) (*XEmbedSocket, error) {
 func (sock *XEmbedSocket) load() error {
 	vals, err := xprop.PropValNums(xprop.GetProperty(sock.X, sock.id, "_XEMBED_INFO"))
 	if err != nil {
-		return err
+		sock.Version = 0
+		sock.Flags = SocketFlags(0)
+
+		return nil // Fucking Qt.
 	}
 
 	if len(vals) < 2 {
