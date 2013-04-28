@@ -34,9 +34,13 @@ func (sb *StatusBar) teardownTray() (err error) {
 // Tray Handlers
 
 func (sb *StatusBar) NewIcon(icon *systemtray.Icon) {
-	sb.tray_icons = append(sb.tray_icons, icon)
+	if err := icon.Embed(-16, 4, sb.window.Id); err != nil {
+		println("[StatusTray] Error embedding icon:", err.Error())
+		println("[StatusTray] Icon Name:", icon.Class())
+		return
+	}
 
-	utils.FailMeMaybe(icon.Embed(-16, 4, sb.window.Id))
+	sb.tray_icons = append(sb.tray_icons, icon)
 
 	icon.Socket.Resize(16, 16)
 
@@ -60,7 +64,7 @@ func (sb *StatusBar) DelIcon(icon *systemtray.Icon) {
 }
 
 func (sb *StatusBar) Error(err error) {
-	utils.Fail(err.Error())
+	println("[StatusTray] Error:", err.Error())
 }
 
 // End Handlers.
