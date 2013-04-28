@@ -1,7 +1,6 @@
 package statbar
 
 import (
-	"github.com/AmandaCameron/gobar/utils"
 	"github.com/AmandaCameron/gobar/utils/system-tray"
 )
 
