@@ -8,8 +8,6 @@ import (
 	"github.com/BurntSushi/xgbutil/xevent"
 	"github.com/BurntSushi/xgbutil/xprop"
 	"github.com/BurntSushi/xgbutil/xwindow"
-
-	"github.com/AmandaCameron/gobar/utils/xembed"
 )
 
 type SystemTray struct {
@@ -19,13 +17,9 @@ type SystemTray struct {
 	wid *xwindow.Window
 }
 
-type Icon struct {
-	Socket *xembed.XEmbedSocket
-	Window *xwindow.Window
-}
-
 type Callbacks interface {
-	NewIcon(Icon)
+	NewIcon(*Icon)
+	DelIcon(*Icon)
 	Error(error)
 }
 
@@ -113,6 +107,13 @@ func New(X *xgbutil.XUtil) (*SystemTray, error) {
 	return tray, nil
 }
 
+func (tray *SystemTray) Teardown() error {
+	// TODO: Tray Icon Tracking?
+
+	currentTime(tray.X)
+	return xproto.SetSelectionOwnerChecked(tray.X.Conn(), xproto.WindowNone, sysTrayAtom, tray.X.TimeGet()).Check()
+}
+
 func (tray *SystemTray) event(ev xevent.ClientMessageEvent) {
 	if ev.Format != 32 {
 		return
@@ -127,26 +128,19 @@ func (tray *SystemTray) event(ev xevent.ClientMessageEvent) {
 	if opCode == 0 {
 		// SYSTEM_TRAY_REQUEST_DOCK
 
-		wid := xproto.Window(ev.Data.Data32[2])
+		icon := tray.newIcon(xproto.Window(ev.Data.Data32[2]))
 
-		sock, err := xembed.NewSocket(tray.X, wid)
-
-		if err != nil {
-			tray.Handler.Error(err)
-			return
+		if icon != nil {
+			tray.Handler.NewIcon(icon)
 		}
+	} else if opCode == 1 {
+		// Not Implemented.
 
-		win := xwindow.New(tray.X, wid)
+	} else if opCode == 2 {
+		// Not Implemented.
 
-		icon := Icon{
-			Socket: sock,
-			Window: win,
-		}
-
-		tray.Handler.NewIcon(icon)
 	} else {
 		// Do Nothing for now.
 		fmt.Printf("[SystemTray] Got unknown opcode: %d", opCode)
 	}
-
 }

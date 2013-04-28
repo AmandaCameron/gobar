@@ -18,6 +18,10 @@ func (sb *StatusBar) initTray() (err error) {
 }
 
 func (sb *StatusBar) teardownTray() (err error) {
+	if err := sb.tray.Teardown(); err != nil {
+		println("Error tearing down tray:", err.Error())
+	}
+
 	for _, icon := range sb.tray_icons {
 		if err := icon.Socket.Eject(); err != nil {
 			println("Error Ejecting:", err.Error())
@@ -29,16 +33,30 @@ func (sb *StatusBar) teardownTray() (err error) {
 
 // Tray Handlers
 
-func (sb *StatusBar) NewIcon(icon systemtray.Icon) {
+func (sb *StatusBar) NewIcon(icon *systemtray.Icon) {
 	sb.tray_icons = append(sb.tray_icons, icon)
 
-	utils.FailMeMaybe(icon.Socket.Embed(-16, 4, sb.window.Id))
+	utils.FailMeMaybe(icon.Embed(-16, 4, sb.window.Id))
 
-	icon.Window.Resize(16, 16)
+	icon.Socket.Resize(16, 16)
 
 	sb.layout()
 
-	icon.Window.Map()
+	icon.Socket.Map()
+}
+
+func (sb *StatusBar) DelIcon(icon *systemtray.Icon) {
+	var icons []*systemtray.Icon
+
+	for _, i := range sb.tray_icons {
+		if icon != i {
+			icons = append(icons, i)
+		}
+	}
+
+	sb.tray_icons = icons
+
+	sb.layout()
 }
 
 func (sb *StatusBar) Error(err error) {
@@ -51,7 +69,7 @@ func (sb *StatusBar) layout() {
 	x := sb.tray_offset
 
 	for _, icon := range sb.tray_icons {
-		icon.Window.Move(x, 4)
+		icon.Socket.Move(x, 4)
 		x += 16
 	}
 }

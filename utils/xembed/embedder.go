@@ -8,9 +8,11 @@ import (
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/xevent"
 	"github.com/BurntSushi/xgbutil/xprop"
+	"github.com/BurntSushi/xgbutil/xwindow"
 )
 
 type XEmbedSocket struct {
+	*xwindow.Window
 	X       *xgbutil.XUtil
 	Version uint32
 	Flags   SocketFlags
@@ -49,8 +51,9 @@ const (
 
 func NewSocket(X *xgbutil.XUtil, wid xproto.Window) (*XEmbedSocket, error) {
 	sock := &XEmbedSocket{
-		id: wid,
-		X:  X,
+		Window: xwindow.New(X, wid),
+		id:     wid,
+		X:      X,
 	}
 
 	if err := sock.load(); err != nil {

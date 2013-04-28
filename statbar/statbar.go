@@ -11,9 +11,6 @@ import (
 
 	"github.com/AmandaCameron/gobar/utils"
 	"github.com/AmandaCameron/gobar/utils/system-tray"
-
-	// "dbus/upower"
-	// "dbus/wicd"
 )
 
 var (
@@ -32,7 +29,7 @@ type StatusBar struct {
 
 	tray_offset int
 	tray        *systemtray.SystemTray
-	tray_icons  []systemtray.Icon
+	tray_icons  []*systemtray.Icon
 
 	items []StatusItem
 
