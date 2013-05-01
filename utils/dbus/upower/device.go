@@ -60,7 +60,7 @@ func (dev *Device) Connect(handler func(*Device)) {
 		for {
 			select {
 			case <-watcher.C:
-				handler(dev)
+				go handler(dev)
 			}
 		}
 	}()
