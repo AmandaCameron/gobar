@@ -5,6 +5,7 @@ import (
 	"os"
 	"text/template"
 
+	xgbxinerama "github.com/BurntSushi/xgb/xinerama"
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/xinerama"
 
@@ -66,22 +67,29 @@ func main() {
 	X, err := xgbutil.NewConn()
 	utils.FailMeMaybe(err)
 
-	heads, err := xinerama.PhysicalHeads(X)
+	xgbXineramaIsActiveCookieReply, err := xgbxinerama.IsActive(X.Conn()).Reply()
 	utils.FailMeMaybe(err)
 
-	cfg.Width = heads[0].Width()
+	if xgbXineramaIsActiveCookieReply.State == 0 {
+		cfg.Width = int(X.Setup().DefaultScreen(X.Conn()).WidthInPixels)
+	} else {
+		heads, err := xinerama.PhysicalHeads(X)
+		utils.FailMeMaybe(err)
+
+		cfg.Width = heads[0].Width()
+	}
 
 	cfg.ClockPos = (cfg.Width / 2) - 100
 	cfg.CommandWidth = (cfg.Width / 2) - 124
 	cfg.StatusPos = (cfg.Width / 2) + 100
 
-	// Look for ze fonts!	
+	// Look for ze fonts!
 
 	cfg.ClockFont = "Put your font here!"
 	cfg.CommandFont = cfg.ClockFont
 	found := false
 
-	for _, fontDir := range []string{"/usr/share/fonts/dejavu/", "/usr/share/fonts/TTF/"} {
+	for _, fontDir := range []string{"/usr/share/fonts/dejavu/", "/usr/share/fonts/TTF/", "/usr/local/lib/X11/fonts/dejavu/"} {
 		if exists(fontDir+"DejaVuSansMono-Bold.ttf") && exists(fontDir+"DejaVuSansMono.ttf") {
 			cfg.ClockFont = fontDir + "DejaVuSansMono-Bold.ttf"
 			cfg.CommandFont = fontDir + "DejaVuSansMono.ttf"
