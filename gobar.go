@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"image"
 	"os"
 	"os/signal"
@@ -15,7 +16,7 @@ import (
 	"github.com/BurntSushi/xgbutil/xgraphics"
 	"github.com/BurntSushi/xgbutil/xwindow"
 
-	"launchpad.net/~jamesh/go-dbus/trunk"
+	badbus "launchpad.net/~jamesh/go-dbus/trunk"
 
 	"github.com/AmandaCameron/gobar/commandtray"
 	"github.com/AmandaCameron/gobar/images"
@@ -27,6 +28,9 @@ import (
 	"github.com/AmandaCameron/gobar/utils/xsettings"
 
 	"github.com/AmandaCameron/go.networkmanager"
+
+	"github.com/godbus/dbus"
+	"github.com/godbus/dbus/introspect"
 )
 
 func main() {
@@ -127,14 +131,23 @@ func main() {
 	img.XDraw()
 	img.XPaint(win.Id)
 
-	// Connect to DBus
+	// Connect to D-Bus
 
-	sys, err := dbus.Connect(dbus.SystemBus)
+	// Gobar D-Bus broken on system described at http://varialus.wikidot.com/wingo
+	// EXTERNAL D-Bus authentication is not implemented in launchpad.net/~jamesh/go-dbus/trunk
+	// EXTERNAL D-Bus authentication is implemented in github.com/godbus/dbus
+	// Either replace launchpad.net/~jamesh/go-dbus/trunk with github.com/godbus/dbus
+	// Or implement EXTERNAL D-Bus authentication in launchpad.net/~jamesh/go-dbus/trunk
+
+	// D-Bus Example from https://github.com/godbus/dbus/blob/master/_examples/introspect.go
+	dbusExample()
+
+	sys, err := badbus.Connect(badbus.SystemBus)
 	utils.FailMeMaybe(err)
 
 	// The session bus, too.
 
-	sess, err := dbus.Connect(dbus.SessionBus)
+	sess, err := badbus.Connect(badbus.SessionBus)
 	utils.FailMeMaybe(err)
 
 	// Blah
@@ -280,4 +293,17 @@ func main() {
 	}()
 
 	xevent.Main(X)
+}
+
+func dbusExample() {
+	conn, err := dbus.SessionBus()
+	utils.FailMeMaybe(err)
+
+	node, err := introspect.Call(conn.Object("org.freedesktop.DBus", "/org/freedesktop/DBus"))
+	utils.FailMeMaybe(err)
+
+	data, err := json.MarshalIndent(node, "", " ")
+	utils.FailMeMaybe(err)
+
+	os.Stdout.Write(data)
 }
