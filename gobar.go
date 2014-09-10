@@ -134,7 +134,7 @@ func main() {
 	// Connect to D-Bus
 
 	// Gobar D-Bus broken on system described at http://varialus.wikidot.com/wingo
-	// EXTERNAL D-Bus authentication not implemented in launchpad.net/~jamesh/go-dbus/trunk
+	// EXTERNAL D-Bus authentication is not implemented in launchpad.net/~jamesh/go-dbus/trunk
 	// EXTERNAL D-Bus authentication is implemented in github.com/godbus/dbus
 	// Either replace launchpad.net/~jamesh/go-dbus/trunk with github.com/godbus/dbus
 	// Or implement EXTERNAL D-Bus authentication in launchpad.net/~jamesh/go-dbus/trunk
@@ -297,13 +297,13 @@ func main() {
 
 func dbusExample() {
 	conn, err := dbus.SessionBus()
-	if err != nil {
-		panic(err)
-	}
+	utils.FailMeMaybe(err)
+
 	node, err := introspect.Call(conn.Object("org.freedesktop.DBus", "/org/freedesktop/DBus"))
-	if err != nil {
-		panic(err)
-	}
-	data, _ := json.MarshalIndent(node, "", " ")
+	utils.FailMeMaybe(err)
+
+	data, err := json.MarshalIndent(node, "", " ")
+	utils.FailMeMaybe(err)
+
 	os.Stdout.Write(data)
 }
